@@ -19,4 +19,12 @@
 
   These values are meant to be public. They are not passwords.
 */
-window.FIREBASE_CONFIG = null;
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyANX_BZlb2Zugoj68zoaG2H4aRXmjAdawo",
+  authDomain: "christmas-list-e11ab.firebaseapp.com",
+  databaseURL: "https://christmas-list-e11ab-default-rtdb.firebaseio.com",
+  projectId: "christmas-list-e11ab",
+  storageBucket: "christmas-list-e11ab.firebasestorage.app",
+  messagingSenderId: "380883321189",
+  appId: "1:380883321189:web:495a38c3841b497fcd218c"
+};
