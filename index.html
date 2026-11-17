@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chris’ Christmas List 2026</title>
+  <meta name="description" content="Pick your name and claim a gift from Chris’ Christmas list.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1d5bc4">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#list">Skip to the list</a>
+
+  <header class="masthead">
+    <h1>Chris’ Christmas List <span class="year">2026</span></h1>
+    <p class="lede">Pick your name, then claim the gift you’re getting. Everyone else sees it right away, so nobody doubles up.</p>
+    <ul class="fineprint">
+      <li id="price-note"></li>
+      <li>Chris browses in Surprise View, so he can’t see who claimed what.</li>
+    </ul>
+  </header>
+
+  <div id="banner" class="banner" role="status" hidden></div>
+
+  <section id="who" class="who" aria-labelledby="who-title"></section>
+
+  <div id="filters" class="filters" hidden></div>
+
+  <nav id="tier-nav" class="tier-nav" aria-label="Price tiers" hidden></nav>
+
+  <main id="list" class="list" tabindex="-1">
+    <noscript><p class="banner">This list needs JavaScript. Try opening it in a different browser.</p></noscript>
+  </main>
+
+  <footer class="footer">
+    <p>Updates show up on their own. You don’t need to refresh.</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="leave-dialog" class="dialog" aria-labelledby="leave-title">
+    <form method="dialog">
+      <h2 id="leave-title">Leave Surprise View?</h2>
+      <p>Switching to another name shows who is getting what. If you’re Chris, that spoils the surprise.</p>
+      <div class="dialog-actions">
+        <button value="stay" class="btn btn-primary" autofocus>Stay in Surprise View</button>
+        <button value="leave" class="btn btn-quiet">Switch anyway</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="items.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

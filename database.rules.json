@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "claims": {
+      ".read": true,
+      "$itemId": {
+        ".write": true,
+        ".validate": "newData.val() === null || (newData.hasChildren(['by', 'status', 'at']) && newData.child('by').isString() && newData.child('by').val().length <= 30 && (newData.child('status').val() === 'planned' || newData.child('status').val() === 'bought'))"
+      }
+    }
+  }
+}

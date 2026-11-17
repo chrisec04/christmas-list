@@ -1,0 +1,280 @@
+/* Chris' Christmas List: styles.
+   Look: gift tags on a frosty baseplate, with each price tier as a studded brick. */
+
+:root {
+  --ink: #1c2330;
+  --muted: #566172;
+  --frost: #e9eff5;
+  --paper: #ffffff;
+  --line: #c9d3de;
+  --focus: #1d5bc4;
+  --taken: #dce3eb;
+  --font: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Tier colors: each pair keeps text readable on its background. */
+.t-affordable { --tier: #f5b800; --on-tier: #1b1a17; }
+.t-manageable { --tier: #17784f; --on-tier: #ffffff; }
+.t-high       { --tier: #1d5bc4; --on-tier: #ffffff; }
+.t-expensive  { --tier: #c62828; --on-tier: #ffffff; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+
+body {
+  margin: 0;
+  background: var(--frost);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+body > * { max-width: 1080px; margin-inline: auto; padding-inline: 20px; }
+
+[hidden] { display: none !important; }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.skip {
+  position: absolute; left: -999px; top: 8px;
+  background: var(--ink); color: #fff; padding: 8px 12px; border-radius: 6px; z-index: 20;
+}
+.skip:focus { left: 12px; }
+
+/* ---------- Masthead ---------- */
+
+.masthead { padding-top: 44px; padding-bottom: 8px; }
+
+.masthead h1 {
+  margin: 0 0 14px;
+  font-size: clamp(2.5rem, 9vw, 4.75rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.lede { margin: 0 0 14px; max-width: 34em; font-size: 1.2rem; line-height: 1.45; }
+
+.fineprint { margin: 0; padding: 0; list-style: none; max-width: 40em; color: var(--muted); font-size: 0.95rem; }
+.fineprint li + li { margin-top: 2px; }
+
+/* ---------- Banner and toast ---------- */
+
+.banner {
+  width: calc(100% - 40px); max-width: 1040px;
+  margin-top: 16px; margin-bottom: 4px;
+  padding: 10px 14px;
+  background: #fff1bf; border: 1px solid #d9a900; border-radius: 6px;
+  font-size: 0.95rem;
+}
+.banner.is-error { background: #ffdcdc; border-color: #c62828; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 20px; z-index: 30;
+  width: max-content; max-width: min(92vw, 30em); margin: 0;
+  transform: translate(-50%, 12px);
+  padding: 12px 18px;
+  background: var(--ink); color: #fff;
+  border-radius: 10px;
+  font-weight: 600; text-align: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Who's shopping ---------- */
+
+.who { padding-top: 22px; padding-bottom: 6px; }
+
+.who h2 { margin: 0 0 10px; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+.chip {
+  min-height: 48px; padding: 8px 22px;
+  border: 2px solid var(--ink); border-radius: 999px;
+  background: var(--paper); color: var(--ink);
+  font: inherit; font-weight: 600; cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.chip:hover { background: var(--ink); color: #fff; }
+
+.who-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 14px; }
+
+.name-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.name-form input {
+  min-height: 44px; width: 14em; max-width: 100%;
+  padding: 8px 12px;
+  border: 2px solid var(--ink); border-radius: 8px;
+  font: inherit; background: var(--paper); color: var(--ink);
+}
+.form-error { margin: 6px 0 0; color: #a11d1d; font-size: 0.95rem; }
+
+.who-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px;
+  padding: 10px 14px;
+  background: var(--paper); border-left: 6px solid var(--ink); border-radius: 4px 12px 12px 4px;
+}
+.who-bar p { margin: 0; }
+.who-bar strong { font-weight: 800; }
+.who-bar.is-surprise { background: var(--ink); color: #fff; border-left-color: #f5b800; }
+.who-bar.is-surprise .btn-link { color: #fff; }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 8px 16px;
+  border: 2px solid transparent; border-radius: 8px;
+  font: inherit; font-weight: 600; line-height: 1.2; text-decoration: none;
+  cursor: pointer;
+}
+.btn-primary { background: var(--ink); color: #fff; }
+.btn-primary:hover { background: #2f3b50; }
+.btn-quiet { background: transparent; color: var(--ink); border-color: var(--ink); }
+.btn-quiet:hover { background: rgba(28, 35, 48, 0.08); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.btn-link {
+  padding: 4px 2px; min-height: 32px;
+  background: none; border: 0; border-bottom: 2px solid currentColor;
+  font: inherit; font-weight: 600; color: var(--ink); cursor: pointer;
+}
+
+/* ---------- Tier navigation ---------- */
+
+.tier-nav {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; overflow-x: auto;
+  margin-top: 14px; padding-top: 10px; padding-bottom: 10px;
+  background: var(--frost); border-bottom: 1px solid var(--line);
+  max-width: none; padding-inline: max(20px, calc((100vw - 1080px) / 2 + 20px));
+  scrollbar-width: none;
+}
+.tier-nav::-webkit-scrollbar { display: none; }
+
+.tier-link {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 40px; padding: 6px 14px 6px 10px;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px;
+  font-weight: 600; font-size: 0.95rem; text-decoration: none;
+}
+.tier-link::before { content: ""; width: 14px; height: 14px; border-radius: 3px; background: var(--tier); }
+.tier-link:hover { border-color: var(--ink); }
+.tier-link .count { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; }
+
+.toggle {
+  flex: none;
+  min-height: 40px; padding: 6px 12px;
+  background: transparent; color: var(--ink);
+  border: 1px solid var(--ink); border-radius: 8px;
+  font: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+.toggle[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+/* ---------- Tiers (the bricks) ---------- */
+
+.list { padding-bottom: 40px; outline: none; }
+
+.tier { margin-top: 52px; }
+.tier:first-child { margin-top: 40px; }
+
+.tier-head {
+  position: relative;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px;
+  padding: 14px 18px 12px;
+  background: var(--tier); color: var(--on-tier);
+  border-radius: 6px;
+}
+/* Studs on top of the brick */
+.tier-head::before {
+  content: ""; position: absolute; left: 14px; right: 14px; top: -9px; height: 9px;
+  background: radial-gradient(ellipse 10px 9px at 50% 100%, var(--tier) 96%, transparent 100%) 0 0 / 30px 9px repeat-x;
+}
+.tier-head h2 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.015em; line-height: 1.15; }
+.tier-head .range { font-weight: 600; }
+.tier-head .left { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+.items {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  margin: 16px 0 0; padding: 0; list-style: none;
+}
+
+/* ---------- Items (gift tags) ---------- */
+
+.item {
+  position: relative;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 14px 16px 14px 38px;
+  background: var(--paper);
+  border-left: 8px solid var(--tier);
+  border-radius: 4px 16px 16px 4px;
+  box-shadow: 0 1px 0 var(--line);
+}
+/* Punched hole of the tag */
+.item::before {
+  content: ""; position: absolute; left: 12px; top: 16px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--frost); box-shadow: inset 0 0 0 2px var(--line);
+}
+
+.item .price { margin: 0; font-size: 1.6rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.item .name { margin: 0; font-weight: 600; line-height: 1.35; }
+.item .note { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+.item .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: auto; padding-top: 4px; }
+.item .state { margin: 0; font-weight: 600; }
+.item .view { font-weight: 600; color: var(--ink); }
+
+.item.is-taken { background: var(--taken); color: var(--muted); box-shadow: none; }
+.item.is-taken .view { color: var(--muted); }
+.item.is-mine { box-shadow: 0 0 0 3px var(--ink); }
+
+.item.just-claimed { animation: snap 0.26s ease-out; }
+@keyframes snap {
+  0%   { transform: translateY(-6px); }
+  70%  { transform: translateY(1px); }
+  100% { transform: translateY(0); }
+}
+
+.empty { margin: 16px 0 0; color: var(--muted); }
+
+/* ---------- Footer and dialog ---------- */
+
+.footer { padding-top: 8px; padding-bottom: 56px; color: var(--muted); font-size: 0.95rem; }
+.footer p { margin: 0; }
+
+.dialog {
+  width: min(92vw, 28em); padding: 22px;
+  border: 0; border-radius: 12px;
+  background: var(--paper); color: var(--ink);
+  max-width: none;
+}
+.dialog::backdrop { background: rgba(20, 28, 40, 0.6); }
+.dialog h2 { margin: 0 0 8px; font-size: 1.4rem; font-weight: 800; }
+.dialog p { margin: 0 0 16px; }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 520px) {
+  body > * { padding-inline: 16px; }
+  .banner { width: calc(100% - 32px); }
+  .tier-nav { padding-inline: 16px; }
+  .tier-head h2 { font-size: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .item.just-claimed { animation: none; }
+  .toast { transition: none; }
+}
