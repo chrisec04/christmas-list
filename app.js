@@ -25,7 +25,6 @@
     tier: 0,           // index of the tier on show
     leaving: null,     // index of the tier sliding out
     dir: 'fwd',
-    animating: false,  // true while the tags swing in
     fresh: {},         // items that just got a stamp (plays the stamp animation)
     erasing: {},       // items whose stamp is fading out
     panel: false,      // picks drawer
@@ -41,7 +40,6 @@
   var lastFocus = null;
   var toastTimer = null;
   var tierTimer = null;
-  var animTimer = null;
   var backTimers = [];
   var modalReturnFocus = null;
 
@@ -383,9 +381,6 @@
     state.tier = 0;
     state.leaving = null;
     state.dir = 'fwd';
-    state.animating = true;
-    clearTimeout(animTimer);
-    animTimer = setTimeout(function () { state.animating = false; }, 1600);
     $('#who-name').textContent = name;
     $('#not-me').textContent = 'Not ' + name + '?';
     $('#surprise-note').hidden = !isOwner();
@@ -393,7 +388,7 @@
     show('list');
     renderBanner();
     renderChrome();
-    renderPanes();
+    renderPanes(true);
     renderDrawer();
   }
 
@@ -472,17 +467,18 @@
     state.leaving = state.tier;
     state.tier = to;
     state.dir = dir;
-    state.animating = true;
-    clearTimeout(animTimer);
-    animTimer = setTimeout(function () { state.animating = false; }, 1600);
     renderChrome();
-    renderPanes();
+    renderPanes(true);
     if ((window.scrollY || 0) > 200) {
       var sw = $('#list');
       window.scrollTo({ top: Math.max(0, sw.getBoundingClientRect().top + (window.scrollY || 0) - 70), behavior: REDUCED ? 'auto' : 'smooth' });
     }
     clearTimeout(tierTimer);
-    tierTimer = setTimeout(function () { state.leaving = null; renderPanes(); }, 460);
+    tierTimer = setTimeout(function () {
+      state.leaving = null;
+      var old = $('#stage').querySelector('.pane.out-fwd, .pane.out-back');
+      if (old) old.parentNode.removeChild(old);
+    }, 420);
   }
 
   /* ---------- Gift tags ---------- */
@@ -530,10 +526,10 @@
     return h('div', { class: 'cell' }, h('div', { class: 'glow' + (mine ? ' on' : '') }, tag));
   }
 
-  function renderPane(n) {
+  function renderPane(n, animate) {
     var t = TIERS[n];
     var cls = 'pane t' + (n + 1);
-    if (state.animating) {
+    if (animate) {
       if (state.tier === n) cls += ' in-' + state.dir;
       else if (state.leaving === n) cls += ' out-' + state.dir;
     }
@@ -547,12 +543,14 @@
       grid);
   }
 
-  function renderPanes() {
+  // animate is true only for the render that starts a tier change. Later renders (a claim arriving,
+  // a button press) must not replay the swing, or the tags flash and animate twice.
+  function renderPanes(animate) {
     if (state.screen !== 'list') return;
     var stage = $('#stage');
     clear(stage);
     TIERS.forEach(function (t, n) {
-      if (n === state.tier || n === state.leaving) stage.appendChild(renderPane(n));
+      if (n === state.tier || n === state.leaving) stage.appendChild(renderPane(n, animate));
     });
     if (lastFocus && !state.detail && !state.panel) {
       var btn = stage.querySelector('[data-item="' + lastFocus + '"] button:not([disabled])');

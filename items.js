@@ -14,7 +14,7 @@
 
 window.OWNER = 'Chris';
 
-window.SHOPPERS = ['Tina', 'Sandy', 'Liz', 'Robert', 'Fred', 'Maya', 'Michael'];
+window.SHOPPERS = ['Tina', 'Sandy', 'Robert', 'Liz', 'Fred'];
 
 /* Passcodes (capital letters do not matter). This is a soft gate only, because the page is public.
    PASSCODE lets family in. OWNER_PASSCODE opens Chris's Surprise View, where claims are never loaded. */
