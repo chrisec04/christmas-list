@@ -149,7 +149,7 @@ button { cursor: pointer; }
 .flourish i { width: 140px; height: 1px; background: var(--accent); }
 .flourish b { width: 10px; height: 10px; background: var(--accent); transform: rotate(45deg); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px 26px; }
-.cell { transform-origin: 50% 0; min-width: 0; }
+.cell { transform-origin: 50% 0; min-width: 0; container-type: inline-size; }
 .glow { display: block; }
 .glow.on { filter: drop-shadow(0 0 3px rgba(255, 240, 190, 0.95)) drop-shadow(0 0 14px rgba(255, 214, 110, 0.75)); }
 
@@ -343,6 +343,8 @@ button { cursor: pointer; }
 @keyframes mSheetIn { 0% { transform: translateY(100%); } 100% { transform: none; } }
 
 .pair { display: flex; align-items: center; gap: 4px 20px; flex-wrap: wrap; }
+/* on narrower tags, stack Put back and Details so the stamp keeps clear of them */
+@container (max-width: 345px) { .pair { flex-direction: column; align-items: flex-start; gap: 0; } }
 
 /* tier palettes: white, holly green, cranberry, then gold for the priciest */
 .t1 { --accent: #FFFFFF; --bg: #FBF8F0; --bgT: #D3D2C9; --bgM: #FFFFFF; --ink: #1D2A23; --price: #14402F; --btn: #14402F; --btnTx: #F4FBF6; --link: #14402F; --ring: #8FA89A; --stamp: #A3162D; }
@@ -424,8 +426,8 @@ button { cursor: pointer; }
 .t4 .tag > .m3 { left: 50%; margin-left: -8px; bottom: 14px; }
 
 /* the stamp: round, postal style, bottom right */
-.stampwrap { position: absolute; z-index: 3; right: -8px; bottom: -32px; width: 128px; height: 128px; pointer-events: none; }
-.stamp { display: block; width: 128px; height: 128px; opacity: 0.92; transform: rotate(-14deg); filter: url(#rough); }
+.stampwrap { position: absolute; z-index: 3; right: 12px; bottom: 16px; width: 112px; height: 112px; pointer-events: none; }
+.stamp { display: block; width: 112px; height: 112px; opacity: 0.92; transform: rotate(-14deg); filter: url(#rough); }
 .stamp .sr { fill: none; stroke: var(--stamp); }
 .stamp .sf { fill: var(--stamp); }
 .stamp .st-t { fill: var(--stamp); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 700; letter-spacing: 0.4px; }
