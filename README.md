@@ -29,6 +29,8 @@ Open `items.js` on GitHub, click the pencil icon, edit, and choose "Commit chang
 
 Each item has a short `blurb`, a list of `links` (one button per store in the Details window) and an optional `image`. To use your own photo, upload it into an `images` folder in the repo and set `image: 'images/death-star.jpg'`. Items without an image show a "Photo coming soon" box.
 
+Two optional fields handle sales and stock: `regular: 579` (with `price` set to the sale price) shows the usual price crossed out with an "On sale" label, and `stock: 'out'` shows an "Out of stock right now" label on the tag and in the Details window. Remove either field when it no longer applies. Out-of-stock items can still be picked.
+
 ## Starting a new year
 
 Clear the `claims` data in the Firebase console (Realtime Database, then delete the `claims` node), then update `items.js`. People who used the site last year are remembered on their device, so they will see "Welcome back" first.

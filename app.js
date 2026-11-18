@@ -483,6 +483,16 @@
 
   /* ---------- Gift tags ---------- */
 
+  // The price, plus the usual price and an "On sale" label when item.regular is higher than item.price.
+  function priceBlock(item, cls) {
+    var main = h('p', { class: cls, text: money(item.price) });
+    if (!(item.regular && item.price !== null && item.regular > item.price)) return main;
+    return h('div', { class: 'pricerow ' + cls + 'row' }, main,
+      h('div', { class: 'salebox' },
+        h('span', { class: 'salepill', text: 'On sale' }),
+        h('s', { class: 'was', 'aria-label': 'Usual price ' + money(item.regular), text: money(item.regular) })));
+  }
+
   function renderTag(item) {
     var claim = isOwner() ? null : state.claims[item.id];
     var mine = !!claim && claim.by === state.me;
@@ -492,8 +502,9 @@
 
     var tag = h('article', { class: 'tag' + (taken ? ' other' : '') + (mine ? ' mine' : ''), 'data-item': item.id },
       h('i', { class: 'hole', 'aria-hidden': 'true' }), tpl('tpl-orn'),
-      h('p', { class: 'price', text: money(item.price) }),
-      h('p', { class: 'name', text: item.name }));
+      priceBlock(item, 'price'),
+      h('p', { class: 'name', text: item.name }),
+      item.stock === 'out' ? h('p', { class: 'stockpill', text: 'Out of stock right now' }) : null);
 
     var details = h('button', { class: 'linkbtn details', type: 'button', onclick: function () { openDetail(item.id); }, text: 'Details' });
 
@@ -642,7 +653,8 @@
 
     var info = h('div', { class: 'dinfo' },
       h('h2', { class: 'dname', id: 'detail-name', text: item.name }),
-      h('p', { class: 'dprice', text: money(item.price) }),
+      priceBlock(item, 'dprice'),
+      item.stock === 'out' ? h('p', { class: 'dstock', text: 'Out of stock right now. You can still pick it, and it may come back.' }) : null,
       item.blurb ? h('p', { class: 'dblurb', text: item.blurb }) : null);
 
     var links = itemLinks(item);
