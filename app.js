@@ -1,5 +1,5 @@
 /* Chris' Christmas List: page logic.
-   Reads the list from items.js, shows it, and keeps claims in sync.
+   Reads the list from items.js, runs the welcome flow, shows the gift tags, and keeps claims in sync.
    Claims live in Firebase when firebase-config.js is filled in; otherwise in this browser only (test mode). */
 
 (function () {
@@ -9,26 +9,41 @@
   var SHOPPERS = window.SHOPPERS;
   var TIERS = window.TIERS;
   var ITEMS = window.ITEMS.filter(function (i) { return !i.hidden; });
+  var PASSCODE = String(window.PASSCODE || '').toLowerCase();
+  var OWNER_PASSCODE = String(window.OWNER_PASSCODE || '').toLowerCase();
 
   var ME_KEY = 'xmas-me-v1';
   var LOCAL_CLAIMS_KEY = 'xmas-claims-v1';
   var FIREBASE_VERSION = '10.12.2';
+  var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   var state = {
     me: null,          // the name picked on this device
+    screen: '',        // intro, code, who, back, list
     claims: {},        // itemId -> { by, status, at }
-    hideTaken: false,
-    justMine: false,
-    flashId: null,     // item that was just claimed (for the little "snap" animation)
-    offline: false,    // true when the shared database can't be reached
-    picking: false,    // true while the name picker is open
-    askingName: false  // true while the "someone else" form is open
+    claimsLoaded: false,
+    tier: 0,           // index of the tier on show
+    leaving: null,     // index of the tier sliding out
+    dir: 'fwd',
+    animating: false,  // true while the tags swing in
+    fresh: {},         // items that just got a stamp (plays the stamp animation)
+    erasing: {},       // items whose stamp is fading out
+    panel: false,      // picks drawer
+    detail: null,      // item id shown in the Details window
+    offline: false,
+    scrolled: false,
+    pulling: false,
+    shake: 0
   };
 
   var store = null;
   var unsubscribe = null;
   var lastFocus = null;
   var toastTimer = null;
+  var tierTimer = null;
+  var animTimer = null;
+  var backTimers = [];
+  var modalReturnFocus = null;
 
   /* ---------- Small helpers ---------- */
 
@@ -52,6 +67,11 @@
     }
     return el;
   }
+
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+  // Copies a snippet of markup out of a <template> in index.html.
+  function tpl(id) { return document.getElementById(id).content.cloneNode(true); }
 
   function money(n) {
     if (n === null || n === undefined) return 'Any amount';
@@ -78,6 +98,8 @@
   function saveMe(name) {
     try { localStorage.setItem(ME_KEY, name); } catch (e) { /* private mode: fine, just not remembered */ }
   }
+
+  function lockScroll(on) { document.documentElement.style.overflow = on ? 'hidden' : ''; }
 
   /* ---------- Claim stores ---------- */
 
@@ -150,17 +172,17 @@
     });
   }
 
-  /* ---------- Actions ---------- */
+  /* ---------- Claim actions ---------- */
 
-  function doAction(itemId, run, okMessage, failMessage, flash) {
+  function afterAction(itemId, ok, okMessage, failMessage) {
+    toast(ok ? okMessage : failMessage);
+    if (store.kind === 'local') store.refresh(onClaims);
+  }
+
+  function doAction(itemId, run, okMessage, failMessage) {
     lastFocus = itemId;
     run().then(function (ok) {
-      toast(ok ? okMessage : failMessage);
-      if (ok && flash) {
-        state.flashId = itemId;
-        setTimeout(function () { state.flashId = null; }, 600);
-      }
-      if (store.kind === 'local') store.refresh(onClaims);
+      afterAction(itemId, ok, okMessage, failMessage);
     }).catch(function () {
       toast('That didn’t save. Check your connection and try again.');
     });
@@ -169,7 +191,7 @@
   function claimItem(item) {
     doAction(item.id, function () { return store.claim(item.id, state.me); },
       'You’re getting ' + item.name + '.',
-      'Someone just claimed that one. Pick another.', true);
+      'Someone just claimed that one. Pick another.');
   }
   function markBought(item) {
     doAction(item.id, function () { return store.setStatus(item.id, state.me, 'bought'); },
@@ -179,63 +201,256 @@
     doAction(item.id, function () { return store.setStatus(item.id, state.me, 'planned'); },
       'Back to “getting.”', 'Couldn’t update that item.');
   }
+  // Puts back after the stamp has had a moment to fade away.
   function putBack(item) {
-    doAction(item.id, function () { return store.release(item.id, state.me); },
-      'Put back. It’s open again.', 'Couldn’t put that back.');
-  }
-
-  /* ---------- Identity ---------- */
-
-  function chooseName(name) {
-    state.me = name;
-    state.picking = false;
-    state.askingName = false;
-    saveMe(name);
-    connectClaims();
-    renderAll();
-    var main = $('#list');
-    if (main) main.scrollIntoView({ block: 'start' });
-  }
-
-  function openPicker() {
-    state.picking = true;
-    renderAll();
-  }
-
-  function requestSwitch() {
-    if (isOwner()) {
-      var dlg = $('#leave-dialog');
-      dlg.addEventListener('close', function onClose() {
-        dlg.removeEventListener('close', onClose);
-        if (dlg.returnValue === 'leave') openPicker();
+    if (state.erasing[item.id]) return;
+    lastFocus = item.id;
+    state.erasing[item.id] = true;
+    renderPanes();
+    renderDrawer();
+    setTimeout(function () {
+      store.release(item.id, state.me).then(function (ok) {
+        delete state.erasing[item.id];
+        afterAction(item.id, ok, 'Put back. It’s open again.', 'Couldn’t put that back.');
+        renderPanes();
+        renderDrawer();
+      }).catch(function () {
+        delete state.erasing[item.id];
+        toast('That didn’t save. Check your connection and try again.');
+        renderPanes();
+        renderDrawer();
       });
-      if (typeof dlg.showModal === 'function') dlg.showModal();
-      else if (window.confirm('Switching shows who is getting what. Switch anyway?')) openPicker();
-    } else {
-      openPicker();
-    }
+    }, REDUCED ? 0 : 650);
+  }
+
+  /* ---------- Claims feed ---------- */
+
+  function markFresh(id) {
+    state.fresh[id] = true;
+    setTimeout(function () { delete state.fresh[id]; }, 1000);
   }
 
   /* Chris never loads the claims at all, so there is nothing to peek at. */
   function connectClaims() {
     if (unsubscribe) { unsubscribe(); unsubscribe = null; }
     state.claims = {};
+    state.claimsLoaded = false;
     if (!store || isOwner() || !state.me) return;
     unsubscribe = store.subscribe(onClaims, function () {
       state.offline = true;
-      renderAll();
+      renderBanner();
+      renderPanes();
     });
   }
 
   function onClaims(claims) {
+    claims = claims || {};
+    if (state.claimsLoaded) {
+      Object.keys(claims).forEach(function (id) { if (!state.claims[id]) markFresh(id); });
+    }
+    state.claimsLoaded = true;
     state.offline = false;
-    state.claims = claims || {};
+    state.claims = claims;
     renderBanner();
-    renderTiers();
-    renderNav();
+    renderChrome();
+    renderPanes();
+    renderDrawer();
   }
 
-  /* ---------- Rendering ---------- */
+  /* ---------- Screens ---------- */
+
+  var SCREENS = ['intro', 'code', 'who', 'back', 'list'];
+
+  function show(name) {
+    state.screen = name;
+    SCREENS.forEach(function (s) { $('#screen-' + s).hidden = s !== name; });
+    window.scrollTo(0, 0);
+    updateFloating();
+  }
+
+  function clearBackTimers() {
+    backTimers.forEach(clearTimeout);
+    backTimers = [];
+  }
+
+  function go(name) {
+    clearBackTimers();
+    closeDrawer(true);
+    closeDetail(true);
+    state.pulling = false;
+    show(name);
+    if (name === 'code') {
+      var wrap = $('#orn-wrap');
+      wrap.className = 'orn-wrap';
+      $('#code-err').textContent = '';
+      var input = $('#passcode');
+      input.value = '';
+      if (!('ontouchstart' in window)) setTimeout(function () { if (state.screen === 'code') input.focus(); }, 900);
+    }
+    if (name === 'who') renderWho();
+  }
+
+  /* ---------- Intro and passcode ---------- */
+
+  function submitCode() {
+    if (state.pulling) return;
+    var input = $('#passcode');
+    var typed = (input.value || '').trim().toLowerCase();
+    var wrap = $('#orn-wrap');
+    var err = $('#code-err');
+    var asOwner = !!OWNER_PASSCODE && typed === OWNER_PASSCODE;
+    if (typed && (asOwner || typed === PASSCODE)) {
+      err.textContent = '';
+      input.value = '';
+      input.blur();
+      state.pulling = true;
+      wrap.className = 'orn-wrap pull';
+      setTimeout(function () {
+        if (state.screen !== 'code') return;
+        state.pulling = false;
+        if (asOwner) enterList(OWNER); else go('who');
+      }, REDUCED ? 250 : 1200);
+    } else {
+      err.textContent = typed ? 'That passcode isn’t right. Check it and try again.' : 'Enter the passcode to continue.';
+      state.shake = state.shake === 1 ? 2 : 1;
+      wrap.className = 'orn-wrap';
+      void wrap.offsetWidth;                         // restart the shake
+      wrap.className = 'orn-wrap ' + (state.shake === 1 ? 'shakeA' : 'shakeB');
+    }
+  }
+
+  function enterSite() {
+    var intro = $('#screen-intro');
+    intro.classList.add('out');
+    setTimeout(function () { intro.classList.remove('out'); if (state.screen === 'intro') go('code'); }, REDUCED ? 0 : 450);
+  }
+
+  /* ---------- Who are you ---------- */
+
+  function renderWho() {
+    var names = $('#names');
+    clear(names);
+    SHOPPERS.forEach(function (name) {
+      names.appendChild(h('button', { class: 'chipbtn', type: 'button', onclick: function () { enterList(name); }, text: name }));
+    });
+    var other = h('button', { class: 'chipbtn other', type: 'button', 'aria-expanded': 'false', text: 'Someone else' });
+    other.addEventListener('click', function () {
+      var form = $('#other-form');
+      form.hidden = !form.hidden;
+      other.classList.toggle('on', !form.hidden);
+      other.setAttribute('aria-expanded', String(!form.hidden));
+      if (!form.hidden) $('#yourname').focus();
+    });
+    names.appendChild(other);
+    $('#other-form').hidden = true;
+    $('#name-err').textContent = '';
+    $('#yourname').value = '';
+  }
+
+  function submitOther() {
+    var nm = ($('#yourname').value || '').trim();
+    var err = $('#name-err');
+    if (!nm) { err.textContent = 'Type your name to continue.'; return; }
+    if (nm.toLowerCase() === OWNER.toLowerCase()) { err.textContent = OWNER + ' owns this list. Use a different name.'; return; }
+    err.textContent = '';
+    enterList(nm);
+  }
+
+  /* ---------- Welcome back and entering the list ---------- */
+
+  function showBack(name) {
+    clearBackTimers();
+    state.me = name;
+    connectClaims();
+    var screen = $('#screen-back');
+    clear(screen);
+    screen.classList.remove('out');
+    screen.appendChild(tpl('tpl-back'));
+    $('#wb-name').textContent = name;
+    show('back');
+    backTimers.push(setTimeout(function () { screen.classList.add('out'); }, 2900));
+    backTimers.push(setTimeout(function () { if (state.screen === 'back') enterList(name); }, 3400));
+  }
+
+  function enterList(name) {
+    clearBackTimers();
+    closeDrawer(true);
+    closeDetail(true);
+    var changed = state.me !== name;
+    state.me = name;
+    saveMe(name);
+    if (changed || !unsubscribe) connectClaims();
+    state.tier = 0;
+    state.leaving = null;
+    state.dir = 'fwd';
+    state.animating = true;
+    clearTimeout(animTimer);
+    animTimer = setTimeout(function () { state.animating = false; }, 1600);
+    $('#who-name').textContent = name;
+    $('#not-me').textContent = 'Not ' + name + '?';
+    $('#surprise-note').hidden = !isOwner();
+    $('#tray').hidden = isOwner();
+    show('list');
+    renderBanner();
+    renderChrome();
+    renderPanes();
+    renderDrawer();
+  }
+
+  function notMe() {
+    if (!isOwner()) { go('who'); return; }
+    var dlg = $('#leave-dialog');
+    dlg.addEventListener('close', function onClose() {
+      dlg.removeEventListener('close', onClose);
+      if (dlg.returnValue === 'leave') go('who');
+    });
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else if (window.confirm('Switching shows who is getting what. Switch anyway?')) go('who');
+  }
+
+  /* ---------- List chrome: tabs, arrows, tray, banner ---------- */
+
+  function mineIn(tierIndex) {
+    if (isOwner()) return 0;
+    var n = 0;
+    ITEMS.forEach(function (it) {
+      var c = state.claims[it.id];
+      if (c && c.by === state.me && it.tier === TIERS[tierIndex].id) n += 1;
+    });
+    return n;
+  }
+
+  function myItems() {
+    return ITEMS.filter(function (it) { var c = state.claims[it.id]; return !isOwner() && c && c.by === state.me; });
+  }
+
+  function renderTabs() {
+    [$('#tabs'), $('#mini')].forEach(function (nav) {
+      clear(nav);
+      TIERS.forEach(function (t, n) {
+        var count = mineIn(n);
+        nav.appendChild(h('button', {
+          class: 'tab ct' + n + (state.tier === n ? ' on' : ''), type: 'button',
+          'aria-label': t.name + ', ' + t.range + (count ? ', ' + count + ' picked' : ''),
+          'aria-current': state.tier === n ? 'true' : null,
+          onclick: function () { changeTier(n, n > state.tier ? 'fwd' : 'back'); }
+        }, h('span', { class: 'tl-name', text: t.name }), h('span', { class: 'tl-short', text: t.short }),
+        count ? h('span', { class: 'badge', 'aria-hidden': 'true', text: String(count) }) : null));
+      });
+    });
+  }
+
+  function renderChrome() {
+    renderTabs();
+    var prev = (state.tier + TIERS.length - 1) % TIERS.length;
+    var next = (state.tier + 1) % TIERS.length;
+    $('#lbl-prev').textContent = TIERS[prev].name;
+    $('#lbl-next').textContent = TIERS[next].name;
+    $('#arrow-prev').setAttribute('aria-label', 'Previous price tier: ' + TIERS[prev].name);
+    $('#arrow-next').setAttribute('aria-label', 'Next price tier: ' + TIERS[next].name);
+    $('#tray-count').textContent = String(myItems().length);
+    $('#tray').className = 'tray' + (myItems().length ? '' : ' empty');
+  }
 
   function renderBanner() {
     var el = $('#banner');
@@ -243,7 +458,7 @@
       el.className = 'banner is-error';
       el.textContent = 'Can’t reach the shared list right now. Claiming is paused. Refresh the page to try again.';
       el.hidden = false;
-    } else if (store && store.kind === 'local' && state.me && !isOwner()) {
+    } else if (store && store.kind === 'local' && state.me && !isOwner() && state.screen === 'list') {
       el.className = 'banner';
       el.textContent = 'Test mode: claims are saved only in this browser until the shared database is connected.';
       el.hidden = false;
@@ -252,200 +467,296 @@
     }
   }
 
-  function renderWho() {
-    var root = $('#who');
-    root.textContent = '';
-
-    if (state.me && !state.picking) {
-      var surprise = isOwner();
-      var bar = h('div', { class: 'who-bar' + (surprise ? ' is-surprise' : '') },
-        h('p', null,
-          surprise ? h('strong', { text: 'Surprise View. ' }) : 'Shopping as ',
-          surprise ? 'Claims are hidden from you.' : h('strong', { text: state.me })),
-        h('button', { class: 'btn-link', type: 'button', onclick: requestSwitch, text: surprise ? 'Not Chris?' : 'Not you? Switch' }));
-      root.appendChild(bar);
-      return;
+  function changeTier(to, dir) {
+    if (to === state.tier) return;
+    state.leaving = state.tier;
+    state.tier = to;
+    state.dir = dir;
+    state.animating = true;
+    clearTimeout(animTimer);
+    animTimer = setTimeout(function () { state.animating = false; }, 1600);
+    renderChrome();
+    renderPanes();
+    if ((window.scrollY || 0) > 200) {
+      var sw = $('#list');
+      window.scrollTo({ top: Math.max(0, sw.getBoundingClientRect().top + (window.scrollY || 0) - 70), behavior: REDUCED ? 'auto' : 'smooth' });
     }
-
-    root.appendChild(h('h2', { id: 'who-title', text: 'Who’s shopping?' }));
-    var chips = h('ul', { class: 'chips' });
-    SHOPPERS.forEach(function (name) {
-      chips.appendChild(h('li', null, h('button', { class: 'chip', type: 'button', onclick: function () { chooseName(name); }, text: name })));
-    });
-    chips.appendChild(h('li', null, h('button', {
-      class: 'chip', type: 'button', 'aria-expanded': state.askingName ? 'true' : 'false',
-      onclick: function () { state.askingName = !state.askingName; renderWho(); if (state.askingName) { var i = $('#other-name'); if (i) i.focus(); } },
-      text: 'Someone else'
-    })));
-    root.appendChild(chips);
-
-    if (state.askingName) {
-      var error = h('p', { class: 'form-error', id: 'name-error', role: 'alert', hidden: true });
-      var input = h('input', { id: 'other-name', type: 'text', maxlength: '30', autocomplete: 'given-name', 'aria-label': 'Your name', placeholder: 'Your name' });
-      var form = h('form', { class: 'name-form', onsubmit: function (e) {
-        e.preventDefault();
-        var name = input.value.trim();
-        if (!name) { error.textContent = 'Type your name to continue.'; error.hidden = false; return; }
-        if (name.toLowerCase() === OWNER.toLowerCase()) { error.textContent = 'That name is saved for the person this list is for. Use “I’m ' + OWNER + '” below if that’s you.'; error.hidden = false; return; }
-        chooseName(name);
-      } }, input, h('button', { class: 'btn btn-primary', type: 'submit', text: 'Continue' }));
-      root.appendChild(h('div', { class: 'who-extra' }, form));
-      root.appendChild(error);
-    }
-
-    root.appendChild(h('div', { class: 'who-extra' },
-      h('button', { class: 'btn-link', type: 'button', onclick: function () { chooseName(OWNER); }, text: 'I’m ' + OWNER }),
-      state.me ? h('button', { class: 'btn-link', type: 'button', onclick: function () { state.picking = false; state.askingName = false; renderAll(); }, text: 'Cancel' }) : null));
+    clearTimeout(tierTimer);
+    tierTimer = setTimeout(function () { state.leaving = null; renderPanes(); }, 460);
   }
 
-  function tierOf(id) { return TIERS.filter(function (t) { return t.id === id; })[0]; }
+  /* ---------- Gift tags ---------- */
 
-  function visibleItems(tierId) {
-    return ITEMS.filter(function (it) {
-      if (it.tier !== tierId) return false;
-      if (isOwner()) return true;
-      var c = state.claims[it.id];
-      if (state.justMine) return !!c && c.by === state.me;
-      if (state.hideTaken) return !c || c.by === state.me || it.shared;
-      return true;
-    });
-  }
-
-  function openCount(tierId) {
-    return ITEMS.filter(function (it) {
-      return it.tier === tierId && (it.shared || !state.claims[it.id]);
-    }).length;
-  }
-  function totalCount(tierId) {
-    return ITEMS.filter(function (it) { return it.tier === tierId; }).length;
-  }
-
-  function renderNav() {
-    var nav = $('#tier-nav');
-    if (!state.me || state.picking) { nav.hidden = true; return; }
-    nav.hidden = false;
-    nav.textContent = '';
-    TIERS.forEach(function (t) {
-      var n = isOwner() ? totalCount(t.id) : openCount(t.id);
-      nav.appendChild(h('a', { class: 'tier-link t-' + t.id, href: '#tier-' + t.id },
-        t.name, h('span', { class: 'count', text: String(n) })));
-    });
-  }
-
-  function renderFilters() {
-    var el = $('#filters');
-    el.textContent = '';
-    if (!state.me || state.picking || isOwner()) { el.hidden = true; return; }
-    el.hidden = false;
-    el.appendChild(h('button', { class: 'toggle', type: 'button', 'aria-pressed': String(state.hideTaken),
-      onclick: function () { state.hideTaken = !state.hideTaken; if (state.hideTaken) state.justMine = false; renderTiers(); renderFilters(); }, text: 'Hide taken' }));
-    el.appendChild(h('button', { class: 'toggle', type: 'button', 'aria-pressed': String(state.justMine),
-      onclick: function () { state.justMine = !state.justMine; if (state.justMine) state.hideTaken = false; renderTiers(); renderFilters(); }, text: 'Just mine' }));
-  }
-
-  function renderItem(item) {
+  function renderTag(item) {
     var claim = isOwner() ? null : state.claims[item.id];
     var mine = !!claim && claim.by === state.me;
     var taken = !!claim && !mine;
+    var locked = state.offline || !store;
+    var erasing = !!state.erasing[item.id];
 
-    var cls = 'item' + (taken ? ' is-taken' : '') + (mine ? ' is-mine' : '') + (state.flashId === item.id ? ' just-claimed' : '');
-    var li = h('li', { class: cls, 'data-item': item.id });
-    li.appendChild(h('p', { class: 'price', text: money(item.price) }));
-    li.appendChild(h('p', { class: 'name', text: item.name }));
-    if (item.note) li.appendChild(h('p', { class: 'note', text: item.note }));
+    var tag = h('article', { class: 'tag' + (taken ? ' other' : '') + (mine ? ' mine' : ''), 'data-item': item.id },
+      h('i', { class: 'hole', 'aria-hidden': 'true' }), tpl('tpl-orn'),
+      h('p', { class: 'price', text: money(item.price) }),
+      h('p', { class: 'name', text: item.name }));
 
-    var actions = h('div', { class: 'actions' });
+    var details = h('button', { class: 'linkbtn details', type: 'button', onclick: function () { openDetail(item.id); }, text: 'Details' });
 
-    if (!isOwner()) {
-      var locked = state.offline || !store;
-      if (item.shared) {
-        actions.appendChild(h('p', { class: 'state', text: 'Open to everyone. No need to claim.' }));
-      } else if (!claim) {
-        actions.appendChild(h('button', { class: 'btn btn-primary', type: 'button', disabled: locked, onclick: function () { claimItem(item); }, text: 'I’ll get this' }));
-      } else if (mine) {
-        actions.appendChild(h('p', { class: 'state', text: claim.status === 'bought' ? 'You bought this.' : 'You’re getting this.' }));
-        if (claim.status === 'bought') {
-          actions.appendChild(h('button', { class: 'btn btn-quiet', type: 'button', disabled: locked, onclick: function () { markPlanned(item); }, text: 'Not bought yet' }));
-        } else {
-          actions.appendChild(h('button', { class: 'btn btn-quiet', type: 'button', disabled: locked, onclick: function () { markBought(item); }, text: 'Mark as bought' }));
-        }
-        actions.appendChild(h('button', { class: 'btn-link', type: 'button', disabled: locked, onclick: function () { putBack(item); }, text: 'Put back' }));
-      } else {
-        actions.appendChild(h('p', { class: 'state', text: claim.by + (claim.status === 'bought' ? ' bought this.' : ' is getting this.') }));
-      }
+    if (isOwner()) {
+      tag.appendChild(h('div', { class: 'row' }, details));
+    } else if (item.shared) {
+      tag.appendChild(h('p', { class: 'state', text: 'Open to everyone. No need to claim.' }));
+      tag.appendChild(h('div', { class: 'row' }, details));
+    } else if (!claim) {
+      tag.appendChild(h('div', { class: 'row' },
+        h('button', { class: 'btn', type: 'button', disabled: locked, onclick: function () { claimItem(item); }, text: 'I’ll get this' }), details));
+    } else if (mine) {
+      var bought = claim.status === 'bought';
+      var pill = h('span', { class: 'pill' }, tpl('tpl-check'), bought ? 'You bought this' : 'You’re getting this');
+      var main = bought
+        ? h('button', { class: 'btn ghost', type: 'button', disabled: locked, onclick: function () { markPlanned(item); }, text: 'Not bought yet' })
+        : h('button', { class: 'btn ghost', type: 'button', disabled: locked, onclick: function () { markBought(item); }, text: 'Mark as bought' });
+      tag.appendChild(h('p', { class: 'state strong' }, pill));
+      tag.appendChild(h('div', { class: 'row stack' }, main,
+        h('span', { class: 'pair' },
+          h('button', { class: 'linkbtn', type: 'button', disabled: locked || erasing, onclick: function () { putBack(item); }, text: 'Put back' }), details)));
+    } else {
+      tag.appendChild(h('div', { class: 'row' }, details));
     }
 
-    if (item.url) {
-      actions.appendChild(h('a', { class: 'view', href: item.url, target: '_blank', rel: 'noopener noreferrer', text: 'View item' }));
+    if (taken || mine) {
+      var stampState = erasing ? 'out' : (state.fresh[item.id] ? 'in' : 'still');
+      tag.appendChild(h('div', { class: 'stampwrap ' + stampState }, tpl('tpl-stamp')));
     }
-    if (actions.childNodes.length) li.appendChild(actions);
-    return li;
+    return h('div', { class: 'cell' }, h('div', { class: 'glow' + (mine ? ' on' : '') }, tag));
   }
 
-  function renderTiers() {
-    var main = $('#list');
-    var noscript = main.querySelector('noscript');
-    main.textContent = '';
-    if (noscript) main.appendChild(noscript);
+  function renderPane(n) {
+    var t = TIERS[n];
+    var cls = 'pane t' + (n + 1);
+    if (state.animating) {
+      if (state.tier === n) cls += ' in-' + state.dir;
+      else if (state.leaving === n) cls += ' out-' + state.dir;
+    }
+    var grid = h('div', { class: 'grid' });
+    ITEMS.filter(function (it) { return it.tier === t.id; }).forEach(function (it) { grid.appendChild(renderTag(it)); });
+    return h('div', { class: cls },
+      h('div', { class: 'phead' },
+        h('h2', { class: 'tname', text: t.name }),
+        h('p', { class: 'trange', text: t.range }),
+        h('div', { class: 'flourish', 'aria-hidden': 'true' }, h('i'), h('b'), h('i'))),
+      grid);
+  }
 
-    if (!state.me || state.picking) return;
-
-    TIERS.forEach(function (t) {
-      var items = visibleItems(t.id);
-      var section = h('section', { class: 'tier t-' + t.id, id: 'tier-' + t.id, 'aria-labelledby': 'tier-title-' + t.id });
-      var left = isOwner()
-        ? totalCount(t.id) + ' items'
-        : openCount(t.id) + ' of ' + totalCount(t.id) + ' open';
-      section.appendChild(h('div', { class: 'tier-head' },
-        h('h2', { id: 'tier-title-' + t.id, text: t.name }),
-        h('span', { class: 'range', text: t.range }),
-        h('span', { class: 'left', text: left })));
-
-      if (items.length) {
-        var ul = h('ul', { class: 'items' });
-        items.forEach(function (it) { ul.appendChild(renderItem(it)); });
-        section.appendChild(ul);
-      } else {
-        section.appendChild(h('p', { class: 'empty', text: state.justMine ? 'You haven’t claimed anything in this tier yet.' : 'Everything in this tier is taken.' }));
-      }
-      main.appendChild(section);
+  function renderPanes() {
+    if (state.screen !== 'list') return;
+    var stage = $('#stage');
+    clear(stage);
+    TIERS.forEach(function (t, n) {
+      if (n === state.tier || n === state.leaving) stage.appendChild(renderPane(n));
     });
-
-    if (lastFocus) {
-      var btn = main.querySelector('[data-item="' + lastFocus + '"] button');
+    if (lastFocus && !state.detail && !state.panel) {
+      var btn = stage.querySelector('[data-item="' + lastFocus + '"] button:not([disabled])');
       if (btn) btn.focus({ preventScroll: true });
       lastFocus = null;
     }
   }
 
-  function renderAll() {
-    renderBanner();
-    renderWho();
-    renderFilters();
-    renderNav();
-    renderTiers();
+  /* ---------- Your picks drawer ---------- */
+
+  function renderDrawer() {
+    if (!state.panel) return;
+    var body = $('#drawer-body');
+    clear(body);
+    var mineItems = myItems();
+    var total = 0;
+    if (!mineItems.length) body.appendChild(h('p', { class: 'pempty', text: 'Nothing yet. Tap “I’ll get this” on a tag and it will show up here.' }));
+    mineItems.forEach(function (it) {
+      var c = state.claims[it.id];
+      var bought = c.status === 'bought';
+      total += it.price || 0;
+      var tierIndex = TIERS.map(function (t) { return t.id; }).indexOf(it.tier);
+      body.appendChild(h('div', { class: 'prow' },
+        h('i', { class: 'dot d' + tierIndex, 'aria-hidden': 'true' }),
+        h('div', null, h('p', { class: 'pname', text: it.name }), h('p', { class: 'pmeta', text: money(it.price) + ', ' + (bought ? 'bought' : 'still to buy') })),
+        h('div', { class: 'pbtns' },
+          bought
+            ? h('button', { class: 'linkbtn', type: 'button', onclick: function () { markPlanned(it); }, text: 'Not bought yet' })
+            : h('button', { class: 'btn', type: 'button', onclick: function () { markBought(it); }, text: 'Mark as bought' }),
+          h('button', { class: 'linkbtn', type: 'button', disabled: !!state.erasing[it.id], onclick: function () { putBack(it); }, text: 'Put back' }),
+          h('button', { class: 'linkbtn', type: 'button', onclick: function () { showOnList(it); }, text: 'Show on list' }))));
+    });
+    $('#drawer-count').textContent = mineItems.length === 1 ? '1 gift' : mineItems.length + ' gifts';
+    $('#drawer-total').textContent = '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function openDrawer() {
+    state.panel = true;
+    modalReturnFocus = document.activeElement;
+    $('#drawer-wrap').hidden = false;
+    lockScroll(true);
+    updateFloating();
+    renderDrawer();
+    $('#drawer-close').focus();
+  }
+
+  function closeDrawer(quiet) {
+    if (!state.panel) return;
+    state.panel = false;
+    $('#drawer-wrap').hidden = true;
+    if (!state.detail) lockScroll(false);
+    updateFloating();
+    if (!quiet && modalReturnFocus && modalReturnFocus.focus) modalReturnFocus.focus({ preventScroll: true });
+  }
+
+  function showOnList(item) {
+    closeDrawer(true);
+    var idx = TIERS.map(function (t) { return t.id; }).indexOf(item.tier);
+    changeTier(idx, idx > state.tier ? 'fwd' : 'back');
+  }
+
+  /* ---------- Details window ---------- */
+
+  function itemLinks(item) {
+    if (item.links && item.links.length) return item.links;
+    return item.url ? [{ label: 'the store', url: item.url }] : [];
+  }
+
+  function openDetail(id) {
+    var item = ITEMS.filter(function (i) { return i.id === id; })[0];
+    if (!item) return;
+    state.detail = id;
+    modalReturnFocus = document.activeElement;
+    var box = $('#detail');
+    clear(box);
+
+    var pic = h('div', { class: 'dpic' });
+    function placeholder() {
+      clear(pic);
+      pic.appendChild(h('div', { class: 'dph' }, tpl('tpl-gift'), h('span', { text: 'Photo coming soon' })));
+    }
+    if (item.image) {
+      var img = h('img', { src: item.image, alt: item.name });
+      img.addEventListener('error', placeholder);
+      pic.appendChild(img);
+    } else {
+      placeholder();
+    }
+
+    var info = h('div', { class: 'dinfo' },
+      h('h2', { class: 'dname', id: 'detail-name', text: item.name }),
+      h('p', { class: 'dprice', text: money(item.price) }),
+      item.blurb ? h('p', { class: 'dblurb', text: item.blurb }) : null);
+
+    var links = itemLinks(item);
+    if (links.length) {
+      var row = h('div', { class: 'dlinks' });
+      links.forEach(function (l, k) {
+        row.appendChild(h('a', { class: 'dbuy' + (k ? ' alt' : ''), href: l.url, target: '_blank', rel: 'noopener noreferrer' },
+          (k ? 'Or at ' : 'Buy at ') + l.label, tpl('tpl-ext')));
+      });
+      info.appendChild(h('p', { class: 'dwhere', text: 'Where to buy' }));
+      info.appendChild(row);
+    } else {
+      info.appendChild(h('p', { class: 'dnote', text: 'A store link will be added soon.' }));
+    }
+
+    box.appendChild(h('button', { class: 'xbtn dclose', type: 'button', onclick: function () { closeDetail(); }, 'aria-label': 'Close details', text: '×' }));
+    box.appendChild(pic);
+    box.appendChild(info);
+    $('#detail-wrap').hidden = false;
+    lockScroll(true);
+    updateFloating();
+    box.scrollTop = 0;
+    box.querySelector('.dclose').focus();
+  }
+
+  function closeDetail(quiet) {
+    if (!state.detail) return;
+    var id = state.detail;
+    state.detail = null;
+    $('#detail-wrap').hidden = true;
+    if (!state.panel) lockScroll(false);
+    updateFloating();
+    if (!quiet) {
+      var back = $('[data-item="' + id + '"] .details');
+      if (back) back.focus({ preventScroll: true });
+    }
+  }
+
+  /* ---------- Floating tab bar (shows once the header has scrolled away) ---------- */
+
+  function updateFloating() {
+    var y = window.scrollY || document.documentElement.scrollTop || 0;
+    state.scrolled = y > 330;
+    $('#mini').hidden = !(state.scrolled && state.screen === 'list' && !state.panel && !state.detail);
+  }
+
+  /* ---------- Keyboard help for the two pop-ups ---------- */
+
+  function trapTab(e, container) {
+    var els = container.querySelectorAll('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])');
+    if (!els.length) return;
+    var first = els[0], last = els[els.length - 1];
+    if (!container.contains(document.activeElement)) { first.focus(); e.preventDefault(); return; }
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  }
+
+  function onKey(e) {
+    if (e.key === 'Escape') {
+      if (state.detail) closeDetail();
+      else if (state.panel) closeDrawer();
+      return;
+    }
+    if (e.key === 'Tab') {
+      if (state.detail) trapTab(e, $('#detail'));
+      else if (state.panel) trapTab(e, $('#drawer'));
+    }
   }
 
   /* ---------- Start ---------- */
 
+  function wire() {
+    $('#enter').addEventListener('click', enterSite);
+    $('#code-go').addEventListener('click', submitCode);
+    $('#passcode').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submitCode(); } });
+    $('#name-go').addEventListener('click', submitOther);
+    $('#yourname').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submitOther(); } });
+    $('#not-me').addEventListener('click', notMe);
+    $('#to-code').addEventListener('click', function () { go('code'); });
+    $('#arrow-prev').addEventListener('click', function () { changeTier((state.tier + TIERS.length - 1) % TIERS.length, 'back'); });
+    $('#arrow-next').addEventListener('click', function () { changeTier((state.tier + 1) % TIERS.length, 'fwd'); });
+    $('#to-top').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); });
+    $('#tray').addEventListener('click', openDrawer);
+    $('#drawer-close').addEventListener('click', function () { closeDrawer(); });
+    $('#drawer-scrim').addEventListener('click', function () { closeDrawer(); });
+    $('#detail-scrim').addEventListener('click', function () { closeDetail(); });
+    $('#screen-back').addEventListener('click', function () { if (state.screen === 'back' && state.me) enterList(state.me); });
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('scroll', updateFloating, { passive: true });
+  }
+
   function start() {
     $('#price-note').textContent = window.PRICE_NOTE || '';
+    wire();
 
     var saved = loadMe();
-    if (saved) state.me = saved;
 
     function ready(s) {
       store = s;
       connectClaims();
-      renderAll();
+      renderBanner();
+      if (state.screen === 'list') { renderChrome(); renderPanes(); }
     }
 
+    if (saved) showBack(saved); else go('intro');
+
     if (window.FIREBASE_CONFIG) {
-      renderAll();
       makeFirebaseStore(window.FIREBASE_CONFIG).then(ready).catch(function () {
         state.offline = true;
         store = makeLocalStore();
-        renderAll();
+        renderBanner();
+        if (state.screen === 'list') renderPanes();
       });
     } else {
       ready(makeLocalStore());
