@@ -36,3 +36,7 @@ Clear the `claims` data in the Firebase console (Realtime Database, then delete 
 ## Testing on your own computer
 
 Open `index.html` in a browser. It runs in test mode, so nothing is shared.
+
+## If a change doesn't show up on the live site
+
+Browsers cache `styles.css`, `app.js` and `items.js`. Each is linked in `index.html` with a `?v=` marker (for example `styles.css?v=20261117b`). When you push a change to one of those files, change the marker in `index.html` too (any new value works) so everyone's browser fetches the new copy. A hard refresh (Ctrl+Shift+R, or Cmd+Shift+R on Mac) also works.
