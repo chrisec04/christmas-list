@@ -148,7 +148,13 @@ button { cursor: pointer; }
 .flourish { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 28px; }
 .flourish i { width: 140px; height: 1px; background: var(--accent); }
 .flourish b { width: 10px; height: 10px; background: var(--accent); transform: rotate(45deg); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px 26px; }
+.grid { --n: 5; --gx: 26px; display: flex; flex-wrap: wrap; justify-content: center; gap: 30px var(--gx); }
+.grid > .cell { flex: 0 0 calc((100% - (var(--n) - 1) * var(--gx)) / var(--n)); }
+/* tags per row by window width; a row that is not full is centered */
+@media (max-width: 1459px) { .grid { --n: 4; } }
+@media (max-width: 1173px) { .grid { --n: 3; } }
+@media (max-width: 887px) { .grid { --n: 2; } }
+@media (max-width: 569px) { .grid { --n: 1; } }
 .cell { transform-origin: 50% 0; min-width: 0; container-type: inline-size; }
 .glow { display: block; }
 .glow.on { filter: drop-shadow(0 0 3px rgba(255, 240, 190, 0.95)) drop-shadow(0 0 14px rgba(255, 214, 110, 0.75)); }
@@ -278,7 +284,7 @@ button { cursor: pointer; }
   .enter { font-size: 28px; padding: 6px 46px; margin-top: 26px; }
   .stagewrap { padding: 0 14px 150px; }
   .pane { padding-top: 24px; }
-  .grid { gap: 22px; }
+  .grid { --gx: 22px; row-gap: 22px; }
   .tname { font-size: 56px; }
   .trange { font-size: 22px; }
   .phead { padding: 0 64px; }
