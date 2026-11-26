@@ -150,6 +150,12 @@ window.ITEMS = [
     image: ''
   },
   {
+    id: 'funism-eevee', name: 'Funism Pokémon Eevee Home Collection figure', price: 299, tier: 'expensive', stock: 'out',
+    blurb: 'A large Eevee figure about 44 cm (17 inches) tall, made of PVC, for sitting out on a shelf or the floor.',
+    links: [{ label: 'Funism', url: 'https://funismglobal.com/products/pokemon-eevee-home-collection-us' }],
+    image: 'images/funism-eevee.jpg'
+  },
+  {
     id: 'lego-poke-ball', name: "LEGO Iconic Trainer Moments Poké Ball", price: 299.99, tier: 'expensive',
     blurb: "A 2,386 piece Poké Ball that opens to reveal a battle scene in one half and Professor Oak's lab in the other.",
     links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/iconic-trainer-moments-poke-ball-72154' }],
