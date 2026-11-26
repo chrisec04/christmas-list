@@ -75,10 +75,10 @@ window.ITEMS = [
     image: ''
   },
   {
-    id: 'corsair-xeneon-edge', name: 'Corsair Xeneon Edge 14.5 inch touchscreen', price: 199.99, regular: 249.99, tier: 'high',
+    id: 'corsair-xeneon-edge', name: 'Corsair Xeneon Edge 14.5 inch touchscreen (Atomic Purple)', price: 199.99, regular: 249.99, tier: 'high',
     blurb: 'A slim touchscreen that sits beside your monitor to show PC stats and shortcuts, and it attaches to a stand or any steel surface with a magnet.',
     links: [
-      { label: 'Corsair', url: 'https://www.corsair.com/us/en/p/monitors/cc-9011306-ww/xeneon-edge-14-5-lcd-touchscreen-cc-9011306-ww' },
+      { label: 'Corsair', url: 'https://www.corsair.com/us/en/p/monitors/cc-9011337-ww/corsair-xeneon-edge-14-5-lcd-touchscreen-atomic-purple-cc-9011337-ww' },
       { label: 'Amazon', url: 'https://www.amazon.com/dp/B0H5KLXYKV' }
     ],
     image: 'images/corsair-xeneon-edge.jpg'
