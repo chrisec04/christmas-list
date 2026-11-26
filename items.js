@@ -75,6 +75,15 @@ window.ITEMS = [
     image: ''
   },
   {
+    id: 'corsair-xeneon-edge', name: 'Corsair Xeneon Edge 14.5 inch touchscreen', price: 199.99, regular: 249.99, tier: 'high',
+    blurb: 'A slim touchscreen that sits beside your monitor to show PC stats and shortcuts, and it attaches to a stand or any steel surface with a magnet.',
+    links: [
+      { label: 'Corsair', url: 'https://www.corsair.com/us/en/p/monitors/cc-9011306-ww/xeneon-edge-14-5-lcd-touchscreen-cc-9011306-ww' },
+      { label: 'Amazon', url: 'https://www.amazon.com/dp/B0H5KLXYKV' }
+    ],
+    image: 'images/corsair-xeneon-edge.jpg'
+  },
+  {
     id: 'lego-tie-interceptor', name: 'LEGO TIE Interceptor', price: 229.99, tier: 'high',
     blurb: 'An Ultimate Collector Series LEGO model of the Imperial TIE Interceptor, built for display.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/tie-interceptor-75382' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+TIE+Interceptor' }],
