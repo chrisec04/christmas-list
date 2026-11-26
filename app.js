@@ -187,6 +187,7 @@
   }
 
   function claimItem(item) {
+    if (coveringBox(item)) { toast('That one is already included in a Full Box someone is getting.'); return; }
     doAction(item.id, function () { return store.claim(item.id, state.me); },
       'You’re getting ' + item.name + '.',
       'Someone just claimed that one. Pick another.');
@@ -483,6 +484,50 @@
 
   /* ---------- Gift tags ---------- */
 
+  /* ---------- Related options (a full box that contains smaller options) ---------- */
+
+  function itemById(id) { return ITEMS.filter(function (i) { return i.id === id; })[0]; }
+
+  // The box (an item with "includes") that someone has already claimed and that contains this item.
+  function coveringBox(item) {
+    if (isOwner() || state.claims[item.id]) return null;
+    var found = null;
+    ITEMS.forEach(function (b) {
+      if (b.includes && b.includes.indexOf(item.id) !== -1 && state.claims[b.id]) found = b;
+    });
+    return found;
+  }
+
+  // The smaller options inside this box that someone has already claimed.
+  function claimedParts(item) {
+    if (isOwner() || !item.includes) return [];
+    return item.includes.map(itemById).filter(function (p) { return p && state.claims[p.id]; });
+  }
+
+  function partLabel(p) { return p.label || p.name; }
+
+  function listOf(names) {
+    if (names.length < 2) return names.join('');
+    return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+  }
+
+  // Short note for the tag and the Details window. Returns '' when there is nothing to say.
+  function relatedNote(item, short) {
+    var box = coveringBox(item);
+    if (box && short) return state.claims[box.id].by === state.me ? 'In your Full Box.' : 'In a Full Box.';
+    if (box) {
+      var mineBox = state.claims[box.id].by === state.me;
+      return (mineBox ? 'You’re getting the ' : 'Someone is getting the ') + partLabel(box) + ', which already includes this.';
+    }
+    var parts = claimedParts(item);
+    if (parts.length && !state.claims[item.id]) {
+      if (short) return 'Heads up: a smaller option is picked.';
+      return 'Heads up: ' + (parts.every(function (p) { return state.claims[p.id].by === state.me; }) ? 'you have' : 'someone has') +
+        ' already picked the ' + listOf(parts.map(partLabel)) + ', which this box includes.';
+    }
+    return '';
+  }
+
   // The price, plus the usual price and an "On sale" label when item.regular is higher than item.price.
   function priceBlock(item, cls) {
     var main = h('p', { class: cls, text: money(item.price) });
@@ -496,16 +541,19 @@
   function renderTag(item) {
     var claim = isOwner() ? null : state.claims[item.id];
     var mine = !!claim && claim.by === state.me;
-    var taken = !!claim && !mine;
+    var covered = coveringBox(item);
+    var taken = (!!claim && !mine) || !!covered;
     var locked = state.offline || !store;
     var erasing = !!state.erasing[item.id];
+    var related = relatedNote(item, true);
 
     var tag = h('article', { class: 'tag' + (taken ? ' other' : '') + (mine ? ' mine' : ''), 'data-item': item.id },
       h('i', { class: 'hole', 'aria-hidden': 'true' }), tpl('tpl-orn'),
       priceBlock(item, 'price'),
       h('p', { class: 'name', text: item.name }),
       item.stock === 'out' ? h('p', { class: 'stockpill', text: 'Out of stock right now' }) : null,
-      item.retiring ? h('p', { class: 'stockpill retirepill', text: 'Retiring soon' }) : null);
+      item.retiring ? h('p', { class: 'stockpill retirepill', text: 'Retiring soon' }) : null,
+      related ? h('p', { class: 'related', text: related }) : null);
 
     var details = h('button', { class: 'linkbtn details', type: 'button', onclick: function () { openDetail(item.id); }, text: 'Details' });
 
@@ -513,6 +561,8 @@
       tag.appendChild(h('div', { class: 'row' }, details));
     } else if (item.shared) {
       tag.appendChild(h('p', { class: 'state', text: 'Open to everyone. No need to claim.' }));
+      tag.appendChild(h('div', { class: 'row' }, details));
+    } else if (covered) {
       tag.appendChild(h('div', { class: 'row' }, details));
     } else if (!claim) {
       tag.appendChild(h('div', { class: 'row' },
@@ -657,6 +707,7 @@
       priceBlock(item, 'dprice'),
       item.stock === 'out' ? h('p', { class: 'dstock', text: item.retiring ? 'Out of stock right now.' : 'Out of stock right now. You can still pick it, and it may come back.' }) : null,
       item.retiring ? h('p', { class: 'dstock dretire', text: 'Retiring soon. LEGO is about to stop selling this set, so it may not come back.' }) : null,
+      relatedNote(item) ? h('p', { class: 'dstock drelated', text: relatedNote(item) }) : null,
       item.blurb ? h('p', { class: 'dblurb', text: item.blurb }) : null);
 
     var links = itemLinks(item);

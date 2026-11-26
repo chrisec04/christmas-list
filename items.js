@@ -7,6 +7,8 @@
   - "regular": optional. The usual price when an item is on sale. Set "price" to the sale price and "regular" to the normal one, and the tag shows both with an "On sale" label. Remove it when the sale ends.
   - "stock": optional. Set it to 'out' when an item is out of stock right now. The tag shows an "Out of stock" label and the Details window says so. Remove it when it is back.
   - "retiring": optional. Set it to true when LEGO lists the set as "Retiring soon". The tag shows a "Retiring soon" label and the Details window says so. Remove it if it is no longer retiring.
+  - "label": optional. A short name for one option of a set, such as "Single Poké Ball". Used in the notes that connect related items.
+  - "includes": optional. A list of item ids that this item already contains, such as a full box that holds the smaller options. If someone picks the full box, the smaller ones show as unavailable. If someone picks a smaller one first, the full box shows a heads-up note.
   - "blurb": one or two short sentences shown in the Details window.
   - "links": where to buy it. Add as many as you like; each shows as a button in the Details window.
   - "image": a link to a photo, or a file you add to the images folder such as 'images/death-star.jpg'. Leave '' for a placeholder.
@@ -42,10 +44,24 @@ window.ITEMS = [
     image: ''
   },
   {
+    id: 'palmsize-single', name: "Pokémon Palmsize Wonders: Single Poké Ball", price: 9.9, tier: 'affordable',
+    label: 'Single Poké Ball',
+    blurb: "A palm-sized Pokémon figure that comes inside a Poké Ball, from a blind box series of Eevee and its evolutions. You find out which one when it opens.",
+    links: [{ label: 'Funism', url: 'https://funismglobal.com/collections/pokemon/products/pokemon-palmsize-wonders-series-2-figures-us' }],
+    image: 'images/funism-palmsize-ball.jpg'
+  },
+  {
     id: 'lego-hoonicorn', name: "LEGO Ken Block's '65 Ford Mustang Hoonicorn V1", price: 29.99, tier: 'affordable',
     blurb: "A Speed Champions version of Ken Block's Hoonicorn Mustang that comes with a driver minifigure.",
     links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/ken-blocks-65-ford-mustang-hoonicorn-v1-77262' }],
     image: 'images/lego-hoonicorn.jpg'
+  },
+  {
+    id: 'palmsize-8', name: "Pokémon Palmsize Wonders: 8 Random Poké Balls", price: 59, tier: 'manageable',
+    label: '8 Random Poké Balls',
+    blurb: "Eight random palm-sized Pokémon figures, each inside its own Poké Ball, from the Palmsize Wonders Series 2 blind box series.",
+    links: [{ label: 'Funism', url: 'https://funismglobal.com/collections/pokemon/products/pokemon-palmsize-wonders-series-2-figures-us' }],
+    image: 'images/funism-palmsize-ball.jpg'
   },
   {
     id: 'lego-mitsubishi-eclipse', name: "LEGO Fast and Furious Mitsubishi Eclipse", price: 64.99, tier: 'manageable',
@@ -70,6 +86,14 @@ window.ITEMS = [
     blurb: 'A compact LEGO Star Wars Millennium Falcon, a smaller take on the classic smuggling ship.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/millennium-falcon-75375' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Millennium+Falcon+%28mini%29' }],
     image: 'images/lego-mini-falcon.jpg'
+  },
+  {
+    id: 'palmsize-box', name: "Pokémon Palmsize Wonders: Full Box (16 Poké Balls)", price: 89, tier: 'manageable',
+    label: 'Full Box',
+    includes: ['palmsize-single', 'palmsize-8'],
+    blurb: "The whole display box of 16 palm-sized Pokémon figures in Poké Balls. It has everything in the single and 8 ball options, so only one of the three needs to be picked.",
+    links: [{ label: 'Funism', url: 'https://funismglobal.com/collections/pokemon/products/pokemon-palmsize-wonders-series-2-figures-us' }],
+    image: 'images/funism-palmsize-box.jpg'
   },
   {
     id: 'lego-bb-8', name: "LEGO BB-8 Astromech Droid", price: 89.99, tier: 'manageable',
