@@ -40,13 +40,29 @@ window.ITEMS = [
     links: [{ label: 'Amazon', url: 'https://www.amazon.com/gift-cards' }, { label: 'PlayStation', url: 'https://www.playstation.com/en-us/gift-cards/' }, { label: 'LEGO.com', url: 'https://www.lego.com/en-us/page/gift-cards' }],
     image: ''
   },
-
-  // ---- Small Treats ----
   {
-    id: 'lego-miles-morales-mask', name: 'LEGO Miles Morales Spider-Man mask', price: 69.99, tier: 'manageable',
+    id: 'lego-hoonicorn', name: "LEGO Ken Block's '65 Ford Mustang Hoonicorn V1", price: 29.99, tier: 'affordable',
+    blurb: "A Speed Champions version of Ken Block's Hoonicorn Mustang that comes with a driver minifigure.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/ken-blocks-65-ford-mustang-hoonicorn-v1-77262' }],
+    image: 'images/lego-hoonicorn.jpg'
+  },
+  {
+    id: 'lego-mitsubishi-eclipse', name: "LEGO Fast and Furious Mitsubishi Eclipse", price: 64.99, tier: 'manageable',
+    blurb: "A buildable Technic version of the green Mitsubishi Eclipse from the Fast and Furious films.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/fast-and-furious-mitsubishi-eclipse-car-42229' }],
+    image: 'images/lego-mitsubishi-eclipse.jpg'
+  },
+  {
+    id: 'lego-miles-morales-mask', name: 'LEGO Miles Morales Spider-Man mask', price: 69.99, tier: 'manageable', stock: 'out',
     blurb: 'A LEGO display model of the Miles Morales Spider-Man mask with its signature red and black design.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/miles-morales-mask-76329' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Miles+Morales+Spider-Man+mask' }],
     image: ''
+  },
+  {
+    id: 'lego-venator-75441', name: "LEGO Venator-Class Attack Cruiser", price: 79.99, tier: 'manageable',
+    blurb: "A smaller 643 piece display version of the Republic Venator-Class Attack Cruiser, shown on its own stand.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/venator-class-attack-cruiser-75441' }],
+    image: 'images/lego-venator-75441.jpg'
   },
   {
     id: 'lego-mini-falcon', name: 'LEGO Millennium Falcon (mini)', price: 84.99, tier: 'manageable',
@@ -54,10 +70,26 @@ window.ITEMS = [
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/millennium-falcon-75375' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Millennium+Falcon+%28mini%29' }],
     image: ''
   },
-
-  // ---- Big Wishes ----
   {
-    id: 'lego-countach', name: 'LEGO Lamborghini Countach 5000 Quattrovalvole', price: 179.99, tier: 'high',
+    id: 'lego-bb-8', name: "LEGO BB-8 Astromech Droid", price: 89.99, tier: 'manageable',
+    blurb: "BB-8 with a head that spins as you move him, plus a hatch that opens to reveal a thumbs-up arm.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/bb-8-astromech-droid-75452' }],
+    image: 'images/lego-bb-8.jpg'
+  },
+  {
+    id: 'lego-project-hail-mary', name: "LEGO Project Hail Mary", price: 99.99, tier: 'high',
+    blurb: "A microscale model of the Hail Mary spaceship with a crank-turned display stand, a Ryland Grace minifigure and a Rocky figure.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/project-hail-mary-11389' }],
+    image: 'images/lego-hail-mary.jpg'
+  },
+  {
+    id: 'lego-spider-man-figure', name: "LEGO Spider-Man Hero Figure", price: 99.99, tier: 'high',
+    blurb: "A posable Spider-Man figure over 14 inches tall with 24 points of articulation, plus a smaller minifigure and a nameplate.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/spider-man-hero-figure-76346' }],
+    image: 'images/lego-spider-man-hero-figure.jpg'
+  },
+  {
+    id: 'lego-countach', name: 'LEGO Lamborghini Countach 5000 Quattrovalvole', price: 179.99, tier: 'high', stock: 'out',
     blurb: 'A large LEGO Icons model of the Lamborghini Countach 5000 Quattrovalvole, with the sharp wedge shape of the 1980s supercar.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/lamborghini-countach-5000-quattrovalvole-10337' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Lamborghini+Countach+5000+Quattrovalvole' }],
     image: ''
@@ -69,7 +101,7 @@ window.ITEMS = [
     image: ''
   },
   {
-    id: 'lego-at-st', name: 'LEGO AT-ST Walker', price: 199.99, tier: 'high',
+    id: 'lego-at-st', name: 'LEGO AT-ST Walker', price: 199.99, tier: 'high', stock: 'out',
     blurb: 'A detailed LEGO Star Wars build of the Imperial AT-ST walker, made for display.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/at-st-walker-75417' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+AT-ST+Walker' }],
     image: ''
@@ -84,7 +116,7 @@ window.ITEMS = [
     image: 'images/corsair-xeneon-edge.jpg'
   },
   {
-    id: 'lego-tie-interceptor', name: 'LEGO TIE Interceptor', price: 229.99, tier: 'high',
+    id: 'lego-tie-interceptor', name: 'LEGO TIE Interceptor', price: 229.99, tier: 'high', stock: 'out',
     blurb: 'An Ultimate Collector Series LEGO model of the Imperial TIE Interceptor, built for display.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/tie-interceptor-75382' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+TIE+Interceptor' }],
     image: ''
@@ -99,13 +131,23 @@ window.ITEMS = [
     image: 'images/elgato-4k-x.jpg'
   },
   {
+    id: 'lego-n1-starfighter', name: "LEGO The Mandalorian's N-1 Starfighter", price: 249.99, tier: 'high',
+    blurb: "The Ultimate Collector Series N-1 Starfighter from The Mandalorian, with silver bricks, an info plaque and Mandalorian and Grogu figurines.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/the-mandalorians-n-1-starfighter-75442' }],
+    image: 'images/lego-n1-starfighter.jpg'
+  },
+  {
     id: 'hyperice-hip', name: 'Hyperice Normatec hip attachments', price: 250, tier: 'high',
     blurb: 'Compression sleeves with two overlapping zones that cover the hips, glutes, quads, hamstrings, and lower back. A Normatec control unit is needed and is sold separately.',
     links: [{ label: 'Hyperice', url: 'https://hyperice.com/products/hip-attachment/' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=Hyperice+Normatec+hip+attachments' }],
     image: ''
   },
-
-  // ---- Grand Gifts ----
+  {
+    id: 'lego-poke-ball', name: "LEGO Iconic Trainer Moments Poké Ball", price: 299.99, tier: 'expensive',
+    blurb: "A 2,386 piece Poké Ball that opens to reveal a battle scene in one half and Professor Oak's lab in the other.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/iconic-trainer-moments-poke-ball-72154' }],
+    image: 'images/lego-poke-ball.jpg'
+  },
   {
     id: 'hyperice-arm', name: 'Hyperice Normatec arm attachment', price: 400, tier: 'expensive',
     blurb: 'Air compression sleeves for the arms and shoulders, used for recovery after a workout. A Normatec control unit is needed and is sold separately.',
@@ -125,10 +167,16 @@ window.ITEMS = [
     image: ''
   },
   {
-    id: 'lego-ucs-venator', name: 'LEGO UCS Venator-Class Republic Attack Cruiser', price: 649.99, tier: 'expensive',
+    id: 'lego-ucs-venator', name: 'LEGO UCS Venator-Class Republic Attack Cruiser', price: 649.99, tier: 'expensive', stock: 'out',
     blurb: 'A giant Ultimate Collector Series LEGO model of the Republic Attack Cruiser from Star Wars, made for display.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/venator-class-republic-attack-cruiser-75367' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+UCS+Venator-Class+Republic+Attack+Cruiser' }],
-    image: ''
+    image: 'images/lego-ucs-venator.jpg'
+  },
+  {
+    id: 'lego-venusaur-charizard-blastoise', name: "LEGO Venusaur, Charizard and Blastoise", price: 649.99, tier: 'expensive',
+    blurb: "Three Kanto Pokémon built on jungle, volcano and beach scenes that join into one big display, or pose each one on its own.",
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/venusaur-charizard-and-blastoise-72153' }],
+    image: 'images/lego-pokemon-kanto-trio.jpg'
   },
   {
     id: 'yolocam-s7', name: 'YoloLiv YoloCam S7 camera with 18mm lens', price: 749, regular: 799, tier: 'expensive',
