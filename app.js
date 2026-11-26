@@ -504,7 +504,8 @@
       h('i', { class: 'hole', 'aria-hidden': 'true' }), tpl('tpl-orn'),
       priceBlock(item, 'price'),
       h('p', { class: 'name', text: item.name }),
-      item.stock === 'out' ? h('p', { class: 'stockpill', text: 'Out of stock right now' }) : null);
+      item.stock === 'out' ? h('p', { class: 'stockpill', text: 'Out of stock right now' }) : null,
+      item.retiring ? h('p', { class: 'stockpill retirepill', text: 'Retiring soon' }) : null);
 
     var details = h('button', { class: 'linkbtn details', type: 'button', onclick: function () { openDetail(item.id); }, text: 'Details' });
 
@@ -654,7 +655,8 @@
     var info = h('div', { class: 'dinfo' },
       h('h2', { class: 'dname', id: 'detail-name', text: item.name }),
       priceBlock(item, 'dprice'),
-      item.stock === 'out' ? h('p', { class: 'dstock', text: 'Out of stock right now. You can still pick it, and it may come back.' }) : null,
+      item.stock === 'out' ? h('p', { class: 'dstock', text: item.retiring ? 'Out of stock right now.' : 'Out of stock right now. You can still pick it, and it may come back.' }) : null,
+      item.retiring ? h('p', { class: 'dstock dretire', text: 'Retiring soon. LEGO is about to stop selling this set, so it may not come back.' }) : null,
       item.blurb ? h('p', { class: 'dblurb', text: item.blurb }) : null);
 
     var links = itemLinks(item);

@@ -379,7 +379,9 @@ button { cursor: pointer; }
 .was { font-size: 22px; font-weight: 600; line-height: 1; text-decoration: line-through; text-decoration-thickness: 2px; opacity: 0.8; }
 .tag.other .salebox { opacity: 0.62; }
 .stockpill { align-self: flex-start; margin: 0; font-size: 18px; font-weight: 700; font-style: italic; line-height: 1.1; padding: 3px 12px 4px; border: 1.5px solid var(--price); border-radius: 999px; color: var(--price); }
+.retirepill { background: var(--btn); border-color: var(--btn); color: var(--btnTx); font-style: normal; }
 .tag.other .stockpill { opacity: 0.62; }
+.dretire { margin-top: 6px; }
 .state { margin: auto 0 0; font-size: 23px; font-style: italic; }
 .state.strong { font-weight: 700; color: var(--price); }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: auto; }

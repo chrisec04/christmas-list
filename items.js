@@ -6,6 +6,7 @@
   - "price": use a number like 26.99, or null for "Any amount".
   - "regular": optional. The usual price when an item is on sale. Set "price" to the sale price and "regular" to the normal one, and the tag shows both with an "On sale" label. Remove it when the sale ends.
   - "stock": optional. Set it to 'out' when an item is out of stock right now. The tag shows an "Out of stock" label and the Details window says so. Remove it when it is back.
+  - "retiring": optional. Set it to true when LEGO lists the set as "Retiring soon". The tag shows a "Retiring soon" label and the Details window says so. Remove it if it is no longer retiring.
   - "blurb": one or two short sentences shown in the Details window.
   - "links": where to buy it. Add as many as you like; each shows as a button in the Details window.
   - "image": a link to a photo, or a file you add to the images folder such as 'images/death-star.jpg'. Leave '' for a placeholder.
@@ -53,10 +54,10 @@ window.ITEMS = [
     image: 'images/lego-mitsubishi-eclipse.jpg'
   },
   {
-    id: 'lego-miles-morales-mask', name: 'LEGO Miles Morales Spider-Man mask', price: 69.99, tier: 'manageable', stock: 'out',
+    id: 'lego-miles-morales-mask', name: 'LEGO Miles Morales Spider-Man mask', price: 69.99, tier: 'manageable', stock: 'out', retiring: true,
     blurb: 'A LEGO display model of the Miles Morales Spider-Man mask with its signature red and black design.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/miles-morales-mask-76329' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Miles+Morales+Spider-Man+mask' }],
-    image: ''
+    image: 'images/lego-miles-morales-mask.jpg'
   },
   {
     id: 'lego-venator-75441', name: "LEGO Venator-Class Attack Cruiser", price: 79.99, tier: 'manageable',
@@ -68,7 +69,7 @@ window.ITEMS = [
     id: 'lego-mini-falcon', name: 'LEGO Millennium Falcon (mini)', price: 84.99, tier: 'manageable',
     blurb: 'A compact LEGO Star Wars Millennium Falcon, a smaller take on the classic smuggling ship.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/millennium-falcon-75375' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Millennium+Falcon+%28mini%29' }],
-    image: ''
+    image: 'images/lego-mini-falcon.jpg'
   },
   {
     id: 'lego-bb-8', name: "LEGO BB-8 Astromech Droid", price: 89.99, tier: 'manageable',
@@ -89,22 +90,28 @@ window.ITEMS = [
     image: 'images/lego-spider-man-hero-figure.jpg'
   },
   {
-    id: 'lego-countach', name: 'LEGO Lamborghini Countach 5000 Quattrovalvole', price: 179.99, tier: 'high', stock: 'out',
+    id: 'lego-playstation', name: 'LEGO PlayStation', price: 179.99, tier: 'high',
+    blurb: 'A 1,911 piece replica of the original PlayStation console and controller, with dioramas of Ape Escape and Gran Turismo hidden under the lid.',
+    links: [{ label: 'LEGO', url: 'https://www.lego.com/en-us/product/playstation-72306' }],
+    image: 'images/lego-playstation.jpg'
+  },
+  {
+    id: 'lego-countach', name: 'LEGO Lamborghini Countach 5000 Quattrovalvole', price: 179.99, tier: 'high', stock: 'out', retiring: true,
     blurb: 'A large LEGO Icons model of the Lamborghini Countach 5000 Quattrovalvole, with the sharp wedge shape of the 1980s supercar.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/lamborghini-countach-5000-quattrovalvole-10337' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Lamborghini+Countach+5000+Quattrovalvole' }],
-    image: ''
+    image: 'images/lego-countach.jpg'
   },
   {
     id: 'lego-milky-way', name: 'LEGO The Milky Way Galaxy', price: 199.99, tier: 'high',
     blurb: 'A LEGO Art mosaic of the Milky Way that you build and hang on the wall.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/the-milky-way-galaxy-31212' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+The+Milky+Way+Galaxy' }],
-    image: ''
+    image: 'images/lego-milky-way.jpg'
   },
   {
     id: 'lego-at-st', name: 'LEGO AT-ST Walker', price: 199.99, tier: 'high', stock: 'out',
     blurb: 'A detailed LEGO Star Wars build of the Imperial AT-ST walker, made for display.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/at-st-walker-75417' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+AT-ST+Walker' }],
-    image: ''
+    image: 'images/lego-at-st.jpg'
   },
   {
     id: 'corsair-xeneon-edge', name: 'Corsair Xeneon Edge 14.5 inch touchscreen (Atomic Purple)', price: 199.99, regular: 249.99, tier: 'high',
@@ -116,10 +123,10 @@ window.ITEMS = [
     image: 'images/corsair-xeneon-edge.jpg'
   },
   {
-    id: 'lego-tie-interceptor', name: 'LEGO TIE Interceptor', price: 229.99, tier: 'high', stock: 'out',
+    id: 'lego-tie-interceptor', name: 'LEGO TIE Interceptor', price: 229.99, tier: 'high', stock: 'out', retiring: true,
     blurb: 'An Ultimate Collector Series LEGO model of the Imperial TIE Interceptor, built for display.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/tie-interceptor-75382' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+TIE+Interceptor' }],
-    image: ''
+    image: 'images/lego-tie-interceptor.jpg'
   },
   {
     id: 'elgato-4k-x', name: 'Elgato Game Capture 4K X', price: 249.99, tier: 'high',
@@ -167,7 +174,7 @@ window.ITEMS = [
     image: ''
   },
   {
-    id: 'lego-ucs-venator', name: 'LEGO UCS Venator-Class Republic Attack Cruiser', price: 649.99, tier: 'expensive', stock: 'out',
+    id: 'lego-ucs-venator', name: 'LEGO UCS Venator-Class Republic Attack Cruiser', price: 649.99, tier: 'expensive', stock: 'out', retiring: true,
     blurb: 'A giant Ultimate Collector Series LEGO model of the Republic Attack Cruiser from Star Wars, made for display.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/venator-class-republic-attack-cruiser-75367' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+UCS+Venator-Class+Republic+Attack+Cruiser' }],
     image: 'images/lego-ucs-venator.jpg'
@@ -191,7 +198,7 @@ window.ITEMS = [
     id: 'lego-death-star', name: 'LEGO Death Star', price: 999.99, tier: 'expensive',
     blurb: 'A huge LEGO Star Wars build of the Death Star. It is the biggest set on the list.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/death-star-75419' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Death+Star' }],
-    image: ''
+    image: 'images/lego-death-star.jpg'
   },
 
   // ---- Hidden: these were marked taken on last year's list, so they are probably already received.
