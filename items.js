@@ -131,6 +131,15 @@ window.ITEMS = [
     image: ''
   },
   {
+    id: 'yolocam-s7', name: 'YoloLiv YoloCam S7 camera with 18mm lens', price: 749, regular: 799, tier: 'expensive',
+    blurb: 'A streaming camera that plugs in like a webcam but delivers DSLR-style video, with an 18mm lens included.',
+    links: [
+      { label: 'YoloLiv', url: 'https://store.yololiv.com/products/yololiv-yolocam-s7' },
+      { label: 'Amazon', url: 'https://www.amazon.com/dp/B0GHRMJQ1Z' }
+    ],
+    image: 'images/yolocam-s7.jpg'
+  },
+  {
     id: 'lego-death-star', name: 'LEGO Death Star', price: 999.99, tier: 'expensive',
     blurb: 'A huge LEGO Star Wars build of the Death Star. It is the biggest set on the list.',
     links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/death-star-75419' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Death+Star' }],
