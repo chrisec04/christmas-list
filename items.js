@@ -81,6 +81,15 @@ window.ITEMS = [
     image: ''
   },
   {
+    id: 'elgato-4k-x', name: 'Elgato Game Capture 4K X', price: 249.99, tier: 'high',
+    blurb: 'A USB capture card that records and streams console or PC gameplay at up to 4K and 144 frames per second.',
+    links: [
+      { label: 'Elgato', url: 'https://www.elgato.com/us/en/p/game-capture-4k-x' },
+      { label: 'Amazon', url: 'https://www.amazon.com/dp/B0CPFWXMBL' }
+    ],
+    image: 'images/elgato-4k-x.jpg'
+  },
+  {
     id: 'hyperice-hip', name: 'Hyperice Normatec hip attachments', price: 250, tier: 'high',
     blurb: 'Compression sleeves with two overlapping zones that cover the hips, glutes, quads, hamstrings, and lower back. A Normatec control unit is needed and is sold separately.',
     links: [{ label: 'Hyperice', url: 'https://hyperice.com/products/hip-attachment/' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=Hyperice+Normatec+hip+attachments' }],
@@ -95,8 +104,8 @@ window.ITEMS = [
     image: ''
   },
   {
-    id: 'bambu-p1s', name: 'Bambu Lab P1S 3D Printer', price: 509, regular: 579, tier: 'expensive',
-    blurb: 'An enclosed desktop 3D printer from Bambu Lab that prints fast and handles tougher materials like PETG and ASA.',
+    id: 'bambu-p1s', name: 'Bambu Lab P1S AMS 2 Pro Combo', price: 509, regular: 579, tier: 'expensive',
+    blurb: 'An enclosed, fast desktop 3D printer bundled with the AMS 2 Pro so it can print in multiple colors.',
     links: [{ label: 'Bambu Lab store', url: 'https://us.store.bambulab.com/products/p1s' }],
     image: 'images/bambu-p1s.png'
   },
