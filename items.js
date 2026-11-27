@@ -38,10 +38,10 @@ window.PRICE_NOTE = 'Prices were checked recently and can change. Please check t
 window.ITEMS = [
   // ---- Stocking Stuffers ----
   {
-    id: 'gift-cards', name: 'Gift cards (PlayStation, Amazon, Lego, and more)', price: null, tier: 'affordable', shared: true,
-    blurb: 'Always welcome. A card for PlayStation, Amazon, LEGO, or anywhere else works, in any amount.',
-    links: [{ label: 'Amazon', url: 'https://www.amazon.com/gift-cards' }, { label: 'PlayStation', url: 'https://www.playstation.com/en-us/gift-cards/' }, { label: 'LEGO.com', url: 'https://www.lego.com/en-us/page/gift-cards' }],
-    image: ''
+    id: 'gift-cards', name: 'Gift cards (PlayStation, Amazon, Costco, LEGO, and more)', price: null, tier: 'affordable', shared: true,
+    blurb: 'Always welcome. A card for PlayStation, Amazon, Costco, LEGO, or anywhere else works, in any amount. The Costco Shop Card can only be bought by Costco members.',
+    links: [{ label: 'Amazon', url: 'https://www.amazon.com/gift-cards' }, { label: 'PlayStation', url: 'https://www.playstation.com/en-us/gift-cards/' }, { label: 'Costco', url: 'https://www.costco.com/p/-/costco-shop-card/10024438' }, { label: 'LEGO.com', url: 'https://www.lego.com/en-us/page/gift-cards' }],
+    image: 'images/gift-cards.jpg'
   },
   {
     id: 'palmsize-single', name: "Pokémon Palmsize Wonders: Single Poké Ball", price: 9.9, tier: 'affordable',
@@ -72,7 +72,7 @@ window.ITEMS = [
   {
     id: 'lego-miles-morales-mask', name: 'LEGO Miles Morales Spider-Man mask', price: 69.99, tier: 'manageable', stock: 'out', retiring: true,
     blurb: 'A LEGO display model of the Miles Morales Spider-Man mask with its signature red and black design.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/miles-morales-mask-76329' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Miles+Morales+Spider-Man+mask' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/miles-morales-mask-76329' }],
     image: 'images/lego-miles-morales-mask.jpg'
   },
   {
@@ -84,7 +84,7 @@ window.ITEMS = [
   {
     id: 'lego-mini-falcon', name: 'LEGO Millennium Falcon (mini)', price: 84.99, tier: 'manageable',
     blurb: 'A compact LEGO Star Wars Millennium Falcon, a smaller take on the classic smuggling ship.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/millennium-falcon-75375' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Millennium+Falcon+%28mini%29' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/millennium-falcon-75375' }],
     image: 'images/lego-mini-falcon.jpg'
   },
   {
@@ -122,19 +122,19 @@ window.ITEMS = [
   {
     id: 'lego-countach', name: 'LEGO Lamborghini Countach 5000 Quattrovalvole', price: 179.99, tier: 'high', stock: 'out', retiring: true,
     blurb: 'A large LEGO Icons model of the Lamborghini Countach 5000 Quattrovalvole, with the sharp wedge shape of the 1980s supercar.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/lamborghini-countach-5000-quattrovalvole-10337' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Lamborghini+Countach+5000+Quattrovalvole' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/lamborghini-countach-5000-quattrovalvole-10337' }],
     image: 'images/lego-countach.jpg'
   },
   {
     id: 'lego-milky-way', name: 'LEGO The Milky Way Galaxy', price: 199.99, tier: 'high',
     blurb: 'A LEGO Art mosaic of the Milky Way that you build and hang on the wall.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/the-milky-way-galaxy-31212' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+The+Milky+Way+Galaxy' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/the-milky-way-galaxy-31212' }],
     image: 'images/lego-milky-way.jpg'
   },
   {
     id: 'lego-at-st', name: 'LEGO AT-ST Walker', price: 199.99, tier: 'high', stock: 'out',
     blurb: 'A detailed LEGO Star Wars build of the Imperial AT-ST walker, made for display.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/at-st-walker-75417' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+AT-ST+Walker' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/at-st-walker-75417' }],
     image: 'images/lego-at-st.jpg'
   },
   {
@@ -147,9 +147,15 @@ window.ITEMS = [
     image: 'images/corsair-xeneon-edge.jpg'
   },
   {
+    id: 'hyperice-hip', name: 'Hyperice Normatec hip attachment', price: 200, regular: 250, tier: 'high',
+    blurb: 'Compression sleeves with two overlapping zones that cover the hips, glutes, quads, hamstrings, and lower back. A Normatec control unit is needed and is sold separately.',
+    links: [{ label: 'Hyperice', url: 'https://hyperice.com/products/hip-attachment/' }, { label: 'Amazon', url: 'https://www.amazon.com/dp/B0BK5C51RP' }],
+    image: 'images/hyperice-hip.jpg'
+  },
+  {
     id: 'lego-tie-interceptor', name: 'LEGO TIE Interceptor', price: 229.99, tier: 'high', stock: 'out', retiring: true,
     blurb: 'An Ultimate Collector Series LEGO model of the Imperial TIE Interceptor, built for display.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/tie-interceptor-75382' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+TIE+Interceptor' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/tie-interceptor-75382' }],
     image: 'images/lego-tie-interceptor.jpg'
   },
   {
@@ -168,12 +174,6 @@ window.ITEMS = [
     image: 'images/lego-n1-starfighter.jpg'
   },
   {
-    id: 'hyperice-hip', name: 'Hyperice Normatec hip attachments', price: 250, tier: 'high',
-    blurb: 'Compression sleeves with two overlapping zones that cover the hips, glutes, quads, hamstrings, and lower back. A Normatec control unit is needed and is sold separately.',
-    links: [{ label: 'Hyperice', url: 'https://hyperice.com/products/hip-attachment/' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=Hyperice+Normatec+hip+attachments' }],
-    image: ''
-  },
-  {
     id: 'funism-eevee', name: 'Funism Pokémon Eevee Home Collection figure', price: 299, tier: 'expensive', stock: 'out',
     blurb: 'A large Eevee figure about 44 cm (17 inches) tall, made of PVC, for sitting out on a shelf or the floor.',
     links: [{ label: 'Funism', url: 'https://funismglobal.com/products/pokemon-eevee-home-collection-us' }],
@@ -186,6 +186,12 @@ window.ITEMS = [
     image: 'images/lego-poke-ball.jpg'
   },
   {
+    id: 'hyperice-arm', name: 'Hyperice Normatec arm attachment', price: 350, regular: 400, tier: 'expensive',
+    blurb: 'Air compression sleeves for the arms and shoulders, used for recovery after a workout. A Normatec control unit is needed and is sold separately.',
+    links: [{ label: 'Hyperice', url: 'https://hyperice.com/products/arm-attachment/' }, { label: 'Amazon', url: 'https://www.amazon.com/dp/B0BK5CTMTF' }],
+    image: 'images/hyperice-arm.jpg'
+  },
+  {
     id: 'pioneer-dmh-w3000nex', name: 'Pioneer DMH-W3000NEX car stereo', price: 379.99, regular: 479.99, tier: 'expensive',
     blurb: 'A car stereo with a 6.8 inch touchscreen and wireless Apple CarPlay and Android Auto, so the phone connects as soon as I get in.',
     links: [
@@ -195,27 +201,15 @@ window.ITEMS = [
     image: 'images/pioneer-dmh-w3000nex.jpg'
   },
   {
-    id: 'hyperice-arm', name: 'Hyperice Normatec arm attachment', price: 400, tier: 'expensive',
-    blurb: 'Air compression sleeves for the arms and shoulders, used for recovery after a workout. A Normatec control unit is needed and is sold separately.',
-    links: [{ label: 'Hyperice', url: 'https://hyperice.com/products/arm-attachment/' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=Hyperice+Normatec+arm+attachment' }],
-    image: ''
-  },
-  {
     id: 'bambu-p1s', name: 'Bambu Lab P1S AMS 2 Pro Combo', price: 509, regular: 579, tier: 'expensive',
     blurb: 'An enclosed, fast desktop 3D printer bundled with the AMS 2 Pro so it can print in multiple colors.',
     links: [{ label: 'Bambu Lab store', url: 'https://us.store.bambulab.com/products/p1s' }],
     image: 'images/bambu-p1s.png'
   },
   {
-    id: 'ruark-mr1', name: 'Ruark Audio MR1 Mk2 speakers', price: 599, tier: 'expensive',
-    blurb: 'Compact powered desktop speakers from Ruark Audio with Bluetooth and a rich sound for their size.',
-    links: [{ label: 'Ruark Audio', url: 'https://www.ruarkaudio.com/us/products/mr1-desktop-speaker-system' }],
-    image: ''
-  },
-  {
     id: 'lego-ucs-venator', name: 'LEGO UCS Venator-Class Republic Attack Cruiser', price: 649.99, tier: 'expensive', stock: 'out', retiring: true,
     blurb: 'A giant Ultimate Collector Series LEGO model of the Republic Attack Cruiser from Star Wars, made for display.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/venator-class-republic-attack-cruiser-75367' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+UCS+Venator-Class+Republic+Attack+Cruiser' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/venator-class-republic-attack-cruiser-75367' }],
     image: 'images/lego-ucs-venator.jpg'
   },
   {
@@ -236,7 +230,7 @@ window.ITEMS = [
   {
     id: 'lego-death-star', name: 'LEGO Death Star', price: 999.99, tier: 'expensive',
     blurb: 'A huge LEGO Star Wars build of the Death Star. It is the biggest set on the list.',
-    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/death-star-75419' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=LEGO+Death+Star' }],
+    links: [{ label: 'LEGO.com', url: 'https://www.lego.com/en-us/product/death-star-75419' }],
     image: 'images/lego-death-star.jpg'
   },
 
