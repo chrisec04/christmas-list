@@ -9,6 +9,12 @@
   var SHOPPERS = window.SHOPPERS;
   var TIERS = window.TIERS;
   var ITEMS = window.ITEMS.filter(function (i) { return !i.hidden; });
+  var KIWI_ITEMS = (window.KIWI_ITEMS || []).filter(function (i) { return !i.hidden; });
+  var ALL_ITEMS = ITEMS.concat(KIWI_ITEMS);
+  var LISTS = {
+    chris: { brand: 'Chris’ Christmas List', short: 'Chris’ List' },
+    kiwi: { brand: 'Kiwi’s Christmas List', short: 'Kiwi’s List' }
+  };
   var PASSCODE = String(window.PASSCODE || '').toLowerCase();
   var OWNER_PASSCODE = String(window.OWNER_PASSCODE || '').toLowerCase();
 
@@ -19,7 +25,10 @@
 
   var state = {
     me: null,          // the name picked on this device
-    screen: '',        // intro, code, who, back, list
+    screen: '',        // intro, code, who, back, pick, list
+    list: 'chris',     // chris or kiwi
+    entry: false,      // true while the first set of tags swings in
+    switching: false,  // true while the list-to-list animation runs
     claims: {},        // itemId -> { by, status, at }
     claimsLoaded: false,
     tier: 0,           // index of the tier on show
@@ -259,7 +268,7 @@
 
   /* ---------- Screens ---------- */
 
-  var SCREENS = ['intro', 'code', 'who', 'back', 'list'];
+  var SCREENS = ['intro', 'code', 'who', 'back', 'pick', 'list'];
 
   function show(name) {
     state.screen = name;
@@ -308,7 +317,7 @@
       setTimeout(function () {
         if (state.screen !== 'code') return;
         state.pulling = false;
-        if (asOwner) enterList(OWNER); else go('who');
+        if (asOwner) goPick(OWNER); else go('who');
       }, REDUCED ? 250 : 1200);
     } else {
       err.textContent = typed ? 'That passcode isn’t right. Check it and try again.' : 'Enter the passcode to continue.';
@@ -331,7 +340,7 @@
     var names = $('#names');
     clear(names);
     SHOPPERS.forEach(function (name) {
-      names.appendChild(h('button', { class: 'chipbtn', type: 'button', onclick: function () { enterList(name); }, text: name }));
+      names.appendChild(h('button', { class: 'chipbtn', type: 'button', onclick: function () { goPick(name); }, text: name }));
     });
     var other = h('button', { class: 'chipbtn other', type: 'button', 'aria-expanded': 'false', text: 'Someone else' });
     other.addEventListener('click', function () {
@@ -353,7 +362,7 @@
     if (!nm) { err.textContent = 'Type your name to continue.'; return; }
     if (nm.toLowerCase() === OWNER.toLowerCase()) { err.textContent = OWNER + ' owns this list. Use a different name.'; return; }
     err.textContent = '';
-    enterList(nm);
+    goPick(nm);
   }
 
   /* ---------- Welcome back and entering the list ---------- */
@@ -369,10 +378,34 @@
     $('#wb-name').textContent = name;
     show('back');
     backTimers.push(setTimeout(function () { screen.classList.add('out'); }, 2900));
-    backTimers.push(setTimeout(function () { if (state.screen === 'back') enterList(name); }, 3400));
+    backTimers.push(setTimeout(function () { if (state.screen === 'back') goPick(name); }, 3400));
   }
 
-  function enterList(name) {
+  // After the name is known, everyone chooses a list.
+  function goPick(name) {
+    clearBackTimers();
+    var changed = state.me !== name;
+    state.me = name;
+    saveMe(name);
+    if (changed || !unsubscribe) connectClaims();
+    go('pick');
+  }
+
+  // Header, title and switch button for whichever list is on show.
+  function applyList() {
+    var kiwi = state.list === 'kiwi';
+    var other = kiwi ? 'chris' : 'kiwi';
+    $('#screen-list').classList.toggle('list-kiwi', kiwi);
+    $('#brand').textContent = LISTS[state.list].brand;
+    document.title = LISTS[state.list].brand;
+    var sw = $('#list-switch');
+    clear(sw);
+    sw.appendChild(h('span', { class: 'swring' }, tpl(other === 'kiwi' ? 'tpl-ico-cat' : 'tpl-ico-gift')));
+    sw.appendChild(h('span', { class: 'swlbl', text: LISTS[other].short }));
+    sw.setAttribute('aria-label', 'Switch to ' + LISTS[other].short);
+  }
+
+  function enterList(name, list) {
     clearBackTimers();
     closeDrawer(true);
     closeDetail(true);
@@ -380,18 +413,48 @@
     state.me = name;
     saveMe(name);
     if (changed || !unsubscribe) connectClaims();
+    state.list = list === 'kiwi' ? 'kiwi' : 'chris';
     state.tier = 0;
     state.leaving = null;
     state.dir = 'fwd';
+    state.entry = true;
     $('#who-name').textContent = name;
     $('#not-me').textContent = 'Not ' + name + '?';
     $('#surprise-note').hidden = !isOwner();
     $('#tray').hidden = isOwner();
+    applyList();
     show('list');
     renderBanner();
     renderChrome();
     renderPanes(true);
     renderDrawer();
+  }
+
+  // Fades the page out, swaps to the other list, then lets the new tags swing in.
+  function switchList() {
+    if (state.switching || state.screen !== 'list') return;
+    state.switching = true;
+    var wrap = $('#screen-list');
+    closeDrawer(true);
+    closeDetail(true);
+    wrap.classList.add('swap-out');
+    setTimeout(function () {
+      state.list = state.list === 'kiwi' ? 'chris' : 'kiwi';
+      state.tier = 0;
+      state.leaving = null;
+      state.dir = 'fwd';
+      state.entry = true;
+      applyList();
+      window.scrollTo(0, 0);
+      wrap.classList.remove('swap-out');
+      wrap.classList.add('swap-in');
+      renderChrome();
+      renderPanes(true);
+      renderDrawer();
+      updateFloating();
+      $('#list-switch').focus({ preventScroll: true });
+      setTimeout(function () { wrap.classList.remove('swap-in'); state.switching = false; }, REDUCED ? 0 : 650);
+    }, REDUCED ? 0 : 320);
   }
 
   function notMe() {
@@ -417,8 +480,10 @@
     return n;
   }
 
+  function listItems() { return state.list === 'kiwi' ? KIWI_ITEMS : ITEMS; }
+
   function myItems() {
-    return ITEMS.filter(function (it) { var c = state.claims[it.id]; return !isOwner() && c && c.by === state.me; });
+    return listItems().filter(function (it) { var c = state.claims[it.id]; return !isOwner() && c && c.by === state.me; });
   }
 
   function renderTabs() {
@@ -438,6 +503,9 @@
   }
 
   function renderChrome() {
+    $('#tray-count').textContent = String(myItems().length);
+    $('#tray').className = 'tray' + (myItems().length ? '' : ' empty');
+    if (state.list === 'kiwi') return;
     renderTabs();
     var prev = (state.tier + TIERS.length - 1) % TIERS.length;
     var next = (state.tier + 1) % TIERS.length;
@@ -445,8 +513,6 @@
     $('#lbl-next').textContent = TIERS[next].name;
     $('#arrow-prev').setAttribute('aria-label', 'Previous price tier: ' + TIERS[prev].name);
     $('#arrow-next').setAttribute('aria-label', 'Next price tier: ' + TIERS[next].name);
-    $('#tray-count').textContent = String(myItems().length);
-    $('#tray').className = 'tray' + (myItems().length ? '' : ' empty');
   }
 
   function renderBanner() {
@@ -465,7 +531,8 @@
   }
 
   function changeTier(to, dir) {
-    if (to === state.tier) return;
+    if (to === state.tier || state.list === 'kiwi') return;
+    state.entry = false;
     state.leaving = state.tier;
     state.tier = to;
     state.dir = dir;
@@ -487,13 +554,13 @@
 
   /* ---------- Related options (a full box that contains smaller options) ---------- */
 
-  function itemById(id) { return ITEMS.filter(function (i) { return i.id === id; })[0]; }
+  function itemById(id) { return ALL_ITEMS.filter(function (i) { return i.id === id; })[0]; }
 
   // The box (an item with "includes") that someone has already claimed and that contains this item.
   function coveringBox(item) {
     if (isOwner() || state.claims[item.id]) return null;
     var found = null;
-    ITEMS.forEach(function (b) {
+    ALL_ITEMS.forEach(function (b) {
       if (b.includes && b.includes.indexOf(item.id) !== -1 && state.claims[b.id]) found = b;
     });
     return found;
@@ -544,7 +611,7 @@
     var mine = !!claim && claim.by === state.me;
     var covered = coveringBox(item);
     var taken = (!!claim && !mine) || !!covered;
-    var locked = state.offline || !store;
+    var locked = state.offline || !store || (!isOwner() && !state.claimsLoaded);
     var erasing = !!state.erasing[item.id];
     var related = relatedNote(item, true);
 
@@ -585,32 +652,79 @@
     return h('div', { class: 'cell' }, h('div', { class: 'glow' + (mine ? ' on' : '') }, tag));
   }
 
+  function paneHead(name, range) {
+    return h('div', { class: 'phead' },
+      h('h2', { class: 'tname', text: name }),
+      h('p', { class: 'trange', text: range }),
+      h('div', { class: 'flourish', 'aria-hidden': 'true' }, h('i'), h('b'), h('i')),
+      h('p', { class: 'tag-hint', text: 'Click tag to view gift details' }));
+  }
+
   function renderPane(n, animate) {
     var t = TIERS[n];
     var cls = 'pane t' + (n + 1);
     if (animate) {
-      if (state.tier === n) cls += ' in-' + state.dir;
+      if (state.tier === n) cls += ' in-' + state.dir + (state.entry && state.leaving === null ? ' first' : '');
       else if (state.leaving === n) cls += ' out-' + state.dir;
     }
     var grid = h('div', { class: 'grid' });
     ITEMS.filter(function (it) { return it.tier === t.id; }).forEach(function (it) { grid.appendChild(renderTag(it)); });
-    return h('div', { class: cls },
-      h('div', { class: 'phead' },
-        h('h2', { class: 'tname', text: t.name }),
-        h('p', { class: 'trange', text: t.range }),
-        h('div', { class: 'flourish', 'aria-hidden': 'true' }, h('i'), h('b'), h('i'))),
-      grid);
+    return h('div', { class: cls }, paneHead(t.name, t.range), grid);
   }
 
-  // animate is true only for the render that starts a tier change. Later renders (a claim arriving,
-  // a button press) must not replay the swing, or the tags flash and animate twice.
+  // Kiwi's list has no price tiers: one pane of tags in the green style.
+  function renderKiwiPane(animate) {
+    var grid = h('div', { class: 'grid' });
+    KIWI_ITEMS.forEach(function (it) { grid.appendChild(renderTag(it)); });
+    var cls = 'pane t2 kiwi' + (animate ? ' in-fwd' + (state.entry ? ' first' : '') : '');
+    return h('div', { class: cls }, paneHead('Kiwi’s Wishes', 'Gifts for Kiwi'), grid);
+  }
+
+  // Swaps the tags for fresh ones without touching the pane around them. The page keeps its scroll
+  // position, and tags that are still swinging in do not start over.
+  function patchStage(stage) {
+    var panes = stage.querySelectorAll('.pane');
+    if (panes.length !== 1) return false;
+    var pane = panes[0];
+    var kiwi = state.list === 'kiwi';
+    if (kiwi !== pane.classList.contains('kiwi')) return false;
+    if (!kiwi && !pane.classList.contains('t' + (state.tier + 1))) return false;
+    var items = kiwi ? KIWI_ITEMS : ITEMS.filter(function (it) { return it.tier === TIERS[state.tier].id; });
+    var cells = pane.querySelectorAll('.cell');
+    if (cells.length !== items.length) return false;
+    var fresh = [];
+    for (var i = 0; i < items.length; i++) {
+      var oldTag = cells[i].querySelector('.tag');
+      if (!oldTag || oldTag.getAttribute('data-item') !== items[i].id) return false;
+      fresh.push(renderTag(items[i]));
+    }
+    fresh.forEach(function (c, i) { cells[i].replaceChild(c.firstChild, cells[i].firstChild); });
+    return true;
+  }
+
+  // animate is true only for the render that starts a tier or list change. Later renders (a claim
+  // arriving, a button press) patch the tags in place, so nothing flashes, replays or jumps.
   function renderPanes(animate) {
     if (state.screen !== 'list') return;
     var stage = $('#stage');
+    if (!animate && !state.leaving && patchStage(stage)) {
+      restoreFocus(stage);
+      return;
+    }
+    var y = window.scrollY || 0;
     clear(stage);
-    TIERS.forEach(function (t, n) {
-      if (n === state.tier || n === state.leaving) stage.appendChild(renderPane(n, animate));
-    });
+    if (state.list === 'kiwi') {
+      stage.appendChild(renderKiwiPane(animate));
+    } else {
+      TIERS.forEach(function (t, n) {
+        if (n === state.tier || n === state.leaving) stage.appendChild(renderPane(n, animate));
+      });
+    }
+    restoreFocus(stage);
+    if (!animate && (window.scrollY || 0) !== y) window.scrollTo(0, y);
+  }
+
+  function restoreFocus(stage) {
     if (lastFocus && !state.detail && !state.panel) {
       var btn = stage.querySelector('[data-item="' + lastFocus + '"] button:not([disabled])');
       if (btn) btn.focus({ preventScroll: true });
@@ -631,7 +745,7 @@
       var c = state.claims[it.id];
       var bought = c.status === 'bought';
       total += it.price || 0;
-      var tierIndex = TIERS.map(function (t) { return t.id; }).indexOf(it.tier);
+      var tierIndex = state.list === 'kiwi' ? 1 : TIERS.map(function (t) { return t.id; }).indexOf(it.tier);
       body.appendChild(h('div', { class: 'prow' },
         h('i', { class: 'dot d' + tierIndex, 'aria-hidden': 'true' }),
         h('div', null, h('p', { class: 'pname', text: it.name }), h('p', { class: 'pmeta', text: money(it.price) + ', ' + (bought ? 'bought' : 'still to buy') })),
@@ -667,6 +781,11 @@
 
   function showOnList(item) {
     closeDrawer(true);
+    if (state.list === 'kiwi') {
+      var el = $('#stage [data-item="' + item.id + '"]');
+      if (el) el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
+      return;
+    }
     var idx = TIERS.map(function (t) { return t.id; }).indexOf(item.tier);
     changeTier(idx, idx > state.tier ? 'fwd' : 'back');
   }
@@ -679,7 +798,7 @@
   }
 
   function openDetail(id) {
-    var item = ITEMS.filter(function (i) { return i.id === id; })[0];
+    var item = itemById(id);
     if (!item) return;
     if (!state.detail) { modalReturnFocus = document.activeElement; detailOrigin = id; }
     state.detail = id;
@@ -707,7 +826,7 @@
       relatedNote(item) ? h('p', { class: 'dstock drelated', text: relatedNote(item) }) : null,
       item.blurb ? h('p', { class: 'dblurb', text: item.blurb }) : null);
 
-    var others = item.group ? ITEMS.filter(function (o) { return o.group === item.group && o.id !== item.id; }) : [];
+    var others = item.group ? ALL_ITEMS.filter(function (o) { return o.group === item.group && o.id !== item.id; }) : [];
     if (others.length) {
       var opts = h('div', { class: 'dopts' });
       others.forEach(function (o) {
@@ -760,7 +879,7 @@
   function updateFloating() {
     var y = window.scrollY || document.documentElement.scrollTop || 0;
     state.scrolled = y > 330;
-    $('#mini').hidden = !(state.scrolled && state.screen === 'list' && !state.panel && !state.detail);
+    $('#mini').hidden = !(state.scrolled && state.screen === 'list' && state.list === 'chris' && !state.panel && !state.detail);
   }
 
   /* ---------- Keyboard help for the two pop-ups ---------- */
@@ -800,10 +919,15 @@
     $('#arrow-next').addEventListener('click', function () { changeTier((state.tier + 1) % TIERS.length, 'fwd'); });
     $('#to-top').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }); });
     $('#tray').addEventListener('click', openDrawer);
+    $('#list-switch').addEventListener('click', switchList);
+    $('#pick-chris').addEventListener('click', function () { enterList(state.me, 'chris'); });
+    $('#pick-kiwi').addEventListener('click', function () { enterList(state.me, 'kiwi'); });
+    $('#pick-chris .pring').appendChild(tpl('tpl-ico-gift'));
+    $('#pick-kiwi .pring').appendChild(tpl('tpl-ico-cat'));
     $('#drawer-close').addEventListener('click', function () { closeDrawer(); });
     $('#drawer-scrim').addEventListener('click', function () { closeDrawer(); });
     $('#detail-scrim').addEventListener('click', function () { closeDetail(); });
-    $('#screen-back').addEventListener('click', function () { if (state.screen === 'back' && state.me) enterList(state.me); });
+    $('#screen-back').addEventListener('click', function () { if (state.screen === 'back' && state.me) goPick(state.me); });
     document.addEventListener('keydown', onKey);
     window.addEventListener('scroll', updateFloating, { passive: true });
   }

@@ -18,6 +18,7 @@ The passcodes are a soft gate only. The site is public, so anyone who reads the 
 | --- | --- |
 | `index.html` | The page and its screens. |
 | `styles.css` | How it looks. |
+| `kiwi-items.js` | Kiwi's list (no price tiers). |
 | `app.js` | How it works (welcome flow, passcodes, claiming, Surprise View, Details window). |
 | `items.js` | **The list itself.** Names, passcodes, price tiers and items. Edit this one most. |
 | `firebase-config.js` | Connects the shared database. Until it's filled in, the site runs in test mode (claims saved only in the visitor's own browser). |
@@ -32,6 +33,8 @@ Each item has a short `blurb`, a list of `links` (one button per store in the De
 Two optional fields handle sales and stock: `regular: 579` (with `price` set to the sale price) shows the usual price crossed out with an "On sale" label, and `stock: 'out'` shows an "Out of stock right now" label on the tag and in the Details window. Remove either field when it no longer applies. Out-of-stock items can still be picked.
 
 More optional fields: `retiring: true` adds a "Retiring soon" label (LEGO sets leaving the catalog). `label` is a short name for an option (like "Full Box"). `includes: ['id1', 'id2']` on a bigger option lists the smaller options it covers, so the tag and Details window mention anyone who already picked one of them, and those smaller options lock once someone picks the bigger one. `group: 'palmsize'` on every option of one product lists the other options in the Details window with buttons that switch to them.
+
+**Kiwi's list:** `kiwi-items.js` holds Kiwi's Christmas List. It uses the same fields as `items.js` but has no price tiers, and every id must start with `kiwi-`. After choosing a name, everyone picks Chris' List or Kiwi's List, and the round icon in the top right switches between them. Claims for both lists share the same `claims` data in Firebase, so no rule changes are needed.
 
 Tags open the Details window when clicked, so there is no separate Details button. Prices are re-checked daily by a scheduled task until a week before Christmas.
 
