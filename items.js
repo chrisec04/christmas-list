@@ -186,6 +186,15 @@ window.ITEMS = [
     image: 'images/lego-poke-ball.jpg'
   },
   {
+    id: 'pioneer-dmh-w3000nex', name: 'Pioneer DMH-W3000NEX car stereo', price: 379.99, regular: 479.99, tier: 'expensive',
+    blurb: 'A car stereo with a 6.8 inch touchscreen and wireless Apple CarPlay and Android Auto, so the phone connects as soon as I get in.',
+    links: [
+      { label: 'Crutchfield', url: 'https://www.crutchfield.com/p_130DMW3000/Pioneer-DMH-W3000NEX.html' },
+      { label: 'Amazon', url: 'https://www.amazon.com/dp/B0D5DRCTRT' }
+    ],
+    image: 'images/pioneer-dmh-w3000nex.jpg'
+  },
+  {
     id: 'hyperice-arm', name: 'Hyperice Normatec arm attachment', price: 400, tier: 'expensive',
     blurb: 'Air compression sleeves for the arms and shoulders, used for recovery after a workout. A Normatec control unit is needed and is sold separately.',
     links: [{ label: 'Hyperice', url: 'https://hyperice.com/products/arm-attachment/' }, { label: 'Amazon', url: 'https://www.amazon.com/s?k=Hyperice+Normatec+arm+attachment' }],
