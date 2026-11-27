@@ -42,6 +42,7 @@
   var tierTimer = null;
   var backTimers = [];
   var modalReturnFocus = null;
+  var detailOrigin = null;
 
   /* ---------- Small helpers ---------- */
 
@@ -550,23 +551,22 @@
     var tag = h('article', { class: 'tag' + (taken ? ' other' : '') + (mine ? ' mine' : ''), 'data-item': item.id },
       h('i', { class: 'hole', 'aria-hidden': 'true' }), tpl('tpl-orn'),
       priceBlock(item, 'price'),
-      h('p', { class: 'name', text: item.name }),
+      h('p', { class: 'name' },
+        h('button', { class: 'tagopen', type: 'button', 'aria-haspopup': 'dialog', onclick: function () { openDetail(item.id); }, text: item.name })),
       item.stock === 'out' ? h('p', { class: 'stockpill', text: 'Out of stock right now' }) : null,
       item.retiring ? h('p', { class: 'stockpill retirepill', text: 'Retiring soon' }) : null,
       related ? h('p', { class: 'related', text: related }) : null);
 
-    var details = h('button', { class: 'linkbtn details', type: 'button', onclick: function () { openDetail(item.id); }, text: 'Details' });
+    // The whole tag opens the Details window; the buttons inside keep their own jobs.
+    tag.addEventListener('click', function (e) { if (!e.target.closest('button, a')) openDetail(item.id); });
 
-    if (isOwner()) {
-      tag.appendChild(h('div', { class: 'row' }, details));
+    if (isOwner() || covered) {
+      // Nothing else to press here. The whole tag opens the Details window.
     } else if (item.shared) {
       tag.appendChild(h('p', { class: 'state', text: 'Open to everyone. No need to claim.' }));
-      tag.appendChild(h('div', { class: 'row' }, details));
-    } else if (covered) {
-      tag.appendChild(h('div', { class: 'row' }, details));
     } else if (!claim) {
       tag.appendChild(h('div', { class: 'row' },
-        h('button', { class: 'btn', type: 'button', disabled: locked, onclick: function () { claimItem(item); }, text: 'I’ll get this' }), details));
+        h('button', { class: 'btn', type: 'button', disabled: locked, onclick: function () { claimItem(item); }, text: 'I’ll get this' })));
     } else if (mine) {
       var bought = claim.status === 'bought';
       var pill = h('span', { class: 'pill' }, tpl('tpl-check'), bought ? 'You bought this' : 'You’re getting this');
@@ -575,10 +575,7 @@
         : h('button', { class: 'btn ghost', type: 'button', disabled: locked, onclick: function () { markBought(item); }, text: 'Mark as bought' });
       tag.appendChild(h('p', { class: 'state strong' }, pill));
       tag.appendChild(h('div', { class: 'row stack' }, main,
-        h('span', { class: 'pair' },
-          h('button', { class: 'linkbtn', type: 'button', disabled: locked || erasing, onclick: function () { putBack(item); }, text: 'Put back' }), details)));
-    } else {
-      tag.appendChild(h('div', { class: 'row' }, details));
+        h('button', { class: 'linkbtn', type: 'button', disabled: locked || erasing, onclick: function () { putBack(item); }, text: 'Put back' })));
     }
 
     if (taken || mine) {
@@ -684,8 +681,8 @@
   function openDetail(id) {
     var item = ITEMS.filter(function (i) { return i.id === id; })[0];
     if (!item) return;
+    if (!state.detail) { modalReturnFocus = document.activeElement; detailOrigin = id; }
     state.detail = id;
-    modalReturnFocus = document.activeElement;
     var box = $('#detail');
     clear(box);
 
@@ -709,6 +706,17 @@
       item.retiring ? h('p', { class: 'dstock dretire', text: 'Retiring soon. LEGO is about to stop selling this set, so it may not come back.' }) : null,
       relatedNote(item) ? h('p', { class: 'dstock drelated', text: relatedNote(item) }) : null,
       item.blurb ? h('p', { class: 'dblurb', text: item.blurb }) : null);
+
+    var others = item.group ? ITEMS.filter(function (o) { return o.group === item.group && o.id !== item.id; }) : [];
+    if (others.length) {
+      var opts = h('div', { class: 'dopts' });
+      others.forEach(function (o) {
+        opts.appendChild(h('button', { class: 'dopt', type: 'button', onclick: function () { openDetail(o.id); } },
+          h('span', { class: 'dopt-name', text: partLabel(o) }), h('span', { class: 'dopt-price', text: money(o.price) })));
+      });
+      info.appendChild(h('p', { class: 'dwhere dalso', text: 'Also available in other options' }));
+      info.appendChild(opts);
+    }
 
     var links = itemLinks(item);
     if (links.length) {
@@ -735,13 +743,14 @@
 
   function closeDetail(quiet) {
     if (!state.detail) return;
-    var id = state.detail;
+    var id = detailOrigin || state.detail;
     state.detail = null;
+    detailOrigin = null;
     $('#detail-wrap').hidden = true;
     if (!state.panel) lockScroll(false);
     updateFloating();
     if (!quiet) {
-      var back = $('[data-item="' + id + '"] .details');
+      var back = $('[data-item="' + id + '"] .tagopen');
       if (back) back.focus({ preventScroll: true });
     }
   }

@@ -9,6 +9,7 @@
   - "retiring": optional. Set it to true when LEGO lists the set as "Retiring soon". The tag shows a "Retiring soon" label and the Details window says so. Remove it if it is no longer retiring.
   - "label": optional. A short name for one option of a set, such as "Single Poké Ball". Used in the notes that connect related items.
   - "includes": optional. A list of item ids that this item already contains, such as a full box that holds the smaller options. If someone picks the full box, the smaller ones show as unavailable. If someone picks a smaller one first, the full box shows a heads-up note.
+  - "group": optional. Give related items the same word (the three Palmsize Wonders options use 'palmsize'). Each item's Details window then lists the others in the group with a button to view them.
   - "blurb": one or two short sentences shown in the Details window.
   - "links": where to buy it. Add as many as you like; each shows as a button in the Details window.
   - "image": a link to a photo, or a file you add to the images folder such as 'images/death-star.jpg'. Leave '' for a placeholder.
@@ -44,7 +45,7 @@ window.ITEMS = [
     image: 'images/gift-cards.jpg'
   },
   {
-    id: 'palmsize-single', name: "Pokémon Palmsize Wonders: Single Poké Ball", price: 9.9, tier: 'affordable',
+    id: 'palmsize-single', group: 'palmsize', name: "Pokémon Palmsize Wonders: Single Poké Ball", price: 9.9, tier: 'affordable',
     label: 'Single Poké Ball',
     blurb: "A palm-sized Pokémon figure that comes inside a Poké Ball, from a blind box series of Eevee and its evolutions. You find out which one when it opens.",
     links: [{ label: 'Funism', url: 'https://funismglobal.com/collections/pokemon/products/pokemon-palmsize-wonders-series-2-figures-us' }],
@@ -57,7 +58,7 @@ window.ITEMS = [
     image: 'images/lego-hoonicorn.jpg'
   },
   {
-    id: 'palmsize-8', name: "Pokémon Palmsize Wonders: 8 Random Poké Balls", price: 59, tier: 'manageable',
+    id: 'palmsize-8', group: 'palmsize', name: "Pokémon Palmsize Wonders: 8 Random Poké Balls", price: 59, tier: 'manageable',
     label: '8 Random Poké Balls',
     blurb: "Eight random palm-sized Pokémon figures, each inside its own Poké Ball, from the Palmsize Wonders Series 2 blind box series.",
     links: [{ label: 'Funism', url: 'https://funismglobal.com/collections/pokemon/products/pokemon-palmsize-wonders-series-2-figures-us' }],
@@ -88,7 +89,7 @@ window.ITEMS = [
     image: 'images/lego-mini-falcon.jpg'
   },
   {
-    id: 'palmsize-box', name: "Pokémon Palmsize Wonders: Full Box (16 Poké Balls)", price: 89, tier: 'manageable',
+    id: 'palmsize-box', group: 'palmsize', name: "Pokémon Palmsize Wonders: Full Box (16 Poké Balls)", price: 89, tier: 'manageable',
     label: 'Full Box',
     includes: ['palmsize-single', 'palmsize-8'],
     blurb: "The whole display box of 16 palm-sized Pokémon figures in Poké Balls. It has everything in the single and 8 ball options, so only one of the three needs to be picked.",

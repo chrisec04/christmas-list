@@ -31,6 +31,10 @@ Each item has a short `blurb`, a list of `links` (one button per store in the De
 
 Two optional fields handle sales and stock: `regular: 579` (with `price` set to the sale price) shows the usual price crossed out with an "On sale" label, and `stock: 'out'` shows an "Out of stock right now" label on the tag and in the Details window. Remove either field when it no longer applies. Out-of-stock items can still be picked.
 
+More optional fields: `retiring: true` adds a "Retiring soon" label (LEGO sets leaving the catalog). `label` is a short name for an option (like "Full Box"). `includes: ['id1', 'id2']` on a bigger option lists the smaller options it covers, so the tag and Details window mention anyone who already picked one of them, and those smaller options lock once someone picks the bigger one. `group: 'palmsize'` on every option of one product lists the other options in the Details window with buttons that switch to them.
+
+Tags open the Details window when clicked, so there is no separate Details button. Prices are re-checked daily by a scheduled task until a week before Christmas.
+
 ## Starting a new year
 
 Clear the `claims` data in the Firebase console (Realtime Database, then delete the `claims` node), then update `items.js`. People who used the site last year are remembered on their device, so they will see "Welcome back" first.
